@@ -1,0 +1,85 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
+}
+
+android {
+    namespace 'com.example.appfortester'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.example.appfortester"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        viewBinding.enabled true
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+//    kotlinOptions {
+//        jvmTarget = '1.8'
+//    }
+    kotlin {
+        jvmToolchain {
+            languageVersion.set(JavaLanguageVersion.of(16))
+        }
+    }
+}
+
+dependencies {
+
+
+    //Coroutines
+    def coroutineVer = '1.6.4'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutineVer"
+
+    //MOXY
+    def moxyVer = '2.2.2'
+    implementation "com.github.moxy-community:moxy:$moxyVer"
+    kapt "com.github.moxy-community:moxy-compiler:$moxyVer"
+    implementation "com.github.moxy-community:moxy-androidx:$moxyVer"
+
+    //Dagger
+    def daggerVer = '2.45'
+    implementation "com.google.dagger:dagger:$daggerVer"
+    implementation "com.google.dagger:dagger-android-support:$daggerVer"
+    kapt "com.google.dagger:dagger-android-processor:$daggerVer"
+    kapt "com.google.dagger:dagger-compiler:$daggerVer"
+
+    //Retrofit + moshi converter
+    def retroMoshiVer = '2.9.0'
+    implementation "com.squareup.retrofit2:retrofit:$retroMoshiVer"
+    implementation "com.squareup.retrofit2:converter-moshi:$retroMoshiVer"
+
+    //Moshi
+    def moshiVer = '1.14.0'
+    implementation "com.squareup.moshi:moshi-kotlin:$moshiVer"
+    implementation "com.squareup.moshi:moshi-adapters:$moshiVer"
+
+    //Okhttp3
+    def okhttpVer = '5.0.0-alpha.11'
+    implementation "com.squareup.okhttp3:okhttp:$okhttpVer"
+    implementation "com.squareup.okhttp3:logging-interceptor:$okhttpVer"
+
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}

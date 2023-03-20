@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:orientation="vertical"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textSize="26sp"
+        android:textColor="#14A5E8"
+        android:textStyle="bold|italic"
+        tools:text="First link"
+        android:paddingBottom="20dp"
+        android:id="@+id/firstLink"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textSize="26sp"
+        android:textColor="#14A5E8"
+        android:textStyle="bold|italic"
+        tools:text="Second link"
+        android:paddingBottom="20dp"
+        android:id="@+id/secondLink"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:textSize="26sp"
+        android:textColor="#14A5E8"
+        android:textStyle="bold|italic"
+        tools:text="Third link"
+        android:paddingBottom="20dp"
+        android:id="@+id/thirdLink"/>
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnInstallIntent"
+        android:text="@string/installation_via_intent"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnInstallPackInstaller"
+        android:text="@string/installation_via_package_installer"
+        android:textColor="@color/white"
+        android:textStyle="bold" />
+
+</androidx.appcompat.widget.LinearLayoutCompat>
