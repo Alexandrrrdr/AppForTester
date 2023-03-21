@@ -2,25 +2,17 @@ package com.example.appfortester
 
 import android.annotation.SuppressLint
 import android.app.DownloadManager
-import android.content.ActivityNotFoundException
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
-import android.os.Build
 import android.os.Environment
 import android.util.Log
 import android.widget.Toast
-import androidx.core.content.FileProvider
-import androidx.viewbinding.BuildConfig
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
-import com.example.appfortester.utils.Constants.APP_INSTALL_PATH
 import com.example.appfortester.utils.Constants.FILE_BASE_PATH
 import com.example.appfortester.utils.Constants.FILE_NAME
 import com.example.appfortester.utils.Constants.MIME_TYPE
-import com.example.appfortester.utils.Constants.PROVIDER_PATH
+import kotlinx.coroutines.*
 import java.io.File
 
 class Downloader(
@@ -36,41 +28,45 @@ class Downloader(
 
     @SuppressLint("Range")
     fun downloadFile(linkAddress: String, installationType: Int) {
-        val uriAddress = Uri.parse(linkAddress)
+        val networkAddress = Uri.parse(linkAddress)
         var destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"
         destination += FILE_NAME
 //        val destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
 //                .toString() + "/" + FILE_NAME
+        Log.d("info", "$destination")
         val uri = Uri.parse("$FILE_BASE_PATH$destination")
         val file = File(destination)
+        if (file.exists()) {
+//                startInstall(type = installationType, destination = destination, uri = uri)
+            Toast.makeText(context, "File existed and was deleted", Toast.LENGTH_SHORT).show()
 
-        if (file.exists()){
-            startInstall(type = installationType, destination = destination, uri = uri)
         } else {
-            startInstall(type = installationType, destination = destination, uri = uri)
-            downloadId = downloadFile(uriAddress, uri)
+            CoroutineScope(Dispatchers.Main).launch{
+//                startInstall(type = installationType, destination = destination, uri = uri)
+                downloadFile(networkAddress)
+            }
         }
     }
 
     private fun startInstall(type: Int, destination: String, uri: Uri){
         when(type){
             1 -> {
-                intentInstallerVersion.intentInstallation(destination = destination, uri = uri)
+                intentInstallerVersion.intentInstallation()
             }
             2 -> {
-                intentInstallerVersion.intentInstallation(destination = destination, uri = uri)
+                intentInstallerVersion.intentInstallation()
             }
         }
     }
 
-    private fun downloadFile(downloadUri: Uri, destinationUri: Uri): Long {
-
-        val request = DownloadManager.Request(downloadUri)
-            .setMimeType(MIME_TYPE)
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            .setTitle(FILE_NAME)
-            .setDestinationUri(destinationUri)
-        return downloadManager.enqueue(request)
+    private fun downloadFile(downloadUri: Uri) {
+            val request = DownloadManager.Request(downloadUri)
+                .setMimeType(MIME_TYPE)
+                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+                .setTitle(FILE_NAME)
+                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, FILE_NAME)
+//                .setDestinationUri(destinationUri)
+        downloadManager.enqueue(request)
     }
 
 //    fun enqueueDownload() {

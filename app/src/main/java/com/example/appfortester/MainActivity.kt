@@ -1,37 +1,46 @@
 package com.example.appfortester
 
 import android.Manifest
-import android.app.AlertDialog
+import android.app.DownloadManager
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.result.ActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import com.example.appfortester.broadcasts.DownloadCompleteReceiver
 import com.example.appfortester.databinding.ActivityMainBinding
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
 import com.example.appfortester.utils.Constants.MAIN_URL
-import com.example.appfortester.utils.Constants.PERMISSION_REQUEST_STORAGE
 import com.example.appfortester.utils.Extensions.checkSelfPermissionCompat
 import com.example.appfortester.utils.Extensions.requestPermissionsCompat
-import com.example.appfortester.utils.Extensions.shouldShowRequestPermissionRationaleCompat
-import com.example.appfortester.utils.Extensions.showSnackbar
 import com.google.android.material.snackbar.Snackbar
 import moxy.MvpAppCompatActivity
 import moxy.presenter.InjectPresenter
 import moxy.presenter.ProvidePresenter
 
-class MainActivity : MvpAppCompatActivity(), MainView {
 
-    val temp = "https://androidwave.com/download-and-install-apk-programmatically/"
+class MainActivity : MvpAppCompatActivity(), MainView {
 
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
     private val intentInstallerVersion =  IntentInstallerVersion(context = this)
     private val packageInstallerVersion =  PackageInstallerVersion(context = this)
     private val downloader = Downloader(this, MAIN_URL, intentInstallerVersion, packageInstallerVersion)
+    private val reqCode = 200
+    private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
+    private val unknownSourceResult = registerForActivityResult<Intent, ActivityResult>(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result: ActivityResult ->
+        if (result.resultCode == RESULT_OK) {
+            startActivity(intent)
+        }
+    }
 
     @ProvidePresenter
     fun provideMainPresenter(): MainPresenter{
@@ -47,8 +56,20 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        installUnknownSourcePermission()
+        downloadCompleteReceiver = DownloadCompleteReceiver()
+        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
         binding.btnInstallIntent.setOnClickListener {
-            checkPermission()
+            if (checkPermissionVersionTwo()){
+                mainPresenter.getAppAndInstallViaIntent()
+            } else {
+                this.requestPermissionsCompat(arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.REQUEST_INSTALL_PACKAGES), reqCode)
+            }
         }
 
         binding.btnInstallPackInstaller.setOnClickListener {
@@ -62,87 +83,43 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == PERMISSION_REQUEST_STORAGE) {
-            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                mainPresenter.getAppAndInstallViaIntent()
-            } else {
-                binding.root.showSnackbar(R.string.storage_permission_denied, Snackbar.LENGTH_SHORT)
+        if (requestCode == this.reqCode){
+            if (grantResults.isNotEmpty()){
+                val write = grantResults[0]
+                val read = grantResults[1]
+                val install = grantResults[2]
+
+                val checkWrite = write == PackageManager.PERMISSION_GRANTED
+                val checkRead = read == PackageManager.PERMISSION_GRANTED
+                val checkInstall = install == PackageManager.PERMISSION_GRANTED
+                if (checkWrite && checkRead && checkInstall){
+//                    Snackbar.make(binding.root, "Permission granted after recheck!", Snackbar.LENGTH_SHORT).show()
+                    mainPresenter.getAppAndInstallViaIntent()
+                } else {
+//                    Snackbar.make(binding.root, "Permission denied... Reinstall app", Snackbar.LENGTH_SHORT).show()
+                }
             }
         }
     }
-
-    private fun checkPermission(){
-        if (checkSelfPermissionCompat(Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-            PackageManager.PERMISSION_GRANTED
-        ) {
-            mainPresenter.getAppAndInstallViaIntent()
-        } else {
-            requestStoragePermission()
-        }
-    }
-
-    private fun requestStoragePermission() {
-        if (shouldShowRequestPermissionRationaleCompat(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-            binding.root.showSnackbar(
-                R.string.storage_access_required,
-                Snackbar.LENGTH_INDEFINITE, R.string.ok
-            ) {
-                requestPermissionsCompat(
-                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                    PERMISSION_REQUEST_STORAGE
-                )
-            }
-        } else {
-            requestPermissionsCompat(
-                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
-                PERMISSION_REQUEST_STORAGE
-            )
-        }
-    }
-
-//    @RequiresApi(Build.VERSION_CODES.M)
-//    private fun checkPermission(){
-//        when{
-//            ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-//                -> mainPresenter.getAppAndInstallViaIntent()
-//
-//            shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) -> {
-//                showPermissionDialog()
-//            }
-//            else -> {
-//                pLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//            }
-//        }
-//    }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun showPermissionDialog() {
-        val builder = AlertDialog.Builder(applicationContext)
-        builder.setTitle("Permission required")
-        builder.setMessage("Some permissions are needed to be allowed to use this app without any problems.")
-        builder.setPositiveButton("Grant") { dialog, which ->
-            dialog.cancel()
-            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            val uri = Uri.fromParts("package", applicationContext.packageName, null)
-            intent.data = uri
-            startActivity(intent)
+    private fun installUnknownSourcePermission(){
+        //check and install permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !this.packageManager.canRequestPackageInstalls()){
+            val intent = Intent().setAction(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
+                .setData(Uri.parse(String.format("package:%s", this.packageName)))
+            unknownSourceResult.launch(intent)
         }
-        builder.setNegativeButton("Cancel") { dialog, which ->
-            dialog.dismiss()
-        }
-        builder.show()
     }
 
-//    private fun registerPermissionLauncher(){
-//        pLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()){
-//            if (it){
-//                Snackbar.make(binding.root, "Permissions confirmed", Snackbar.LENGTH_SHORT).show()
-//            } else {
-//                Snackbar.make(binding.root, "Permissions denied", Snackbar.LENGTH_SHORT).show()
-//            }
-//        }
-//    }
+    @RequiresApi(Build.VERSION_CODES.M)
+    private fun checkPermissionVersionTwo(): Boolean{
+        val writePermission = checkSelfPermissionCompat(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val readPermission = checkSelfPermissionCompat(Manifest.permission.READ_EXTERNAL_STORAGE)
+        val installPermission = checkSelfPermissionCompat(Manifest.permission.REQUEST_INSTALL_PACKAGES)
+        return writePermission == PackageManager.PERMISSION_GRANTED && readPermission == PackageManager.PERMISSION_GRANTED
+                &&  installPermission == PackageManager.PERMISSION_GRANTED
+    }
 
     override fun installed() {
         Snackbar.make(binding.root, "Installation is finished successful", Snackbar.LENGTH_SHORT).show()
@@ -156,5 +133,6 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
+        unregisterReceiver(downloadCompleteReceiver)
     }
 }

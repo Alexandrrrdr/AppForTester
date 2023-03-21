@@ -20,7 +20,7 @@ class PackageInstallReceiver(): BroadcastReceiver() {
                 return
             }
             PackageInstaller.STATUS_SUCCESS -> {
-                Toast.makeText(context, "Install succeeded", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Application is Installed successful!", Toast.LENGTH_SHORT).show()
                 return
             }
             else -> {
