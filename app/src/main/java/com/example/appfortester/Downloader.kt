@@ -6,9 +6,6 @@ import android.content.Context
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
-import android.widget.Toast
-import com.example.appfortester.installers.IntentInstallerVersion
-import com.example.appfortester.installers.PackageInstallerVersion
 import com.example.appfortester.utils.Constants.FILE_BASE_PATH
 import com.example.appfortester.utils.Constants.FILE_NAME
 import com.example.appfortester.utils.Constants.MIME_TYPE
@@ -16,58 +13,36 @@ import kotlinx.coroutines.*
 import java.io.File
 
 class Downloader(
-    private val context: Context, private val url: String,
-    private val intentInstallerVersion: IntentInstallerVersion,
-    private val packageInstallerVersion: PackageInstallerVersion
-                 ) {
+    private val context: Context
+    ) {
 
     private val downloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
-    private var downloadId = 0L
+
 
     @SuppressLint("Range")
-    fun downloadFile(linkAddress: String, installationType: Int) {
-        val networkAddress = Uri.parse(linkAddress)
-        var destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"
-        destination += FILE_NAME
-//        val destination = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-//                .toString() + "/" + FILE_NAME
-        Log.d("info", "$destination")
-        val uri = Uri.parse("$FILE_BASE_PATH$destination")
-        val file = File(destination)
-        if (file.exists()) {
-//                startInstall(type = installationType, destination = destination, uri = uri)
-            Toast.makeText(context, "File existed and was deleted", Toast.LENGTH_SHORT).show()
-
-        } else {
-            CoroutineScope(Dispatchers.Main).launch{
-//                startInstall(type = installationType, destination = destination, uri = uri)
-                downloadFile(networkAddress)
-            }
-        }
-    }
-
-    private fun startInstall(type: Int, destination: String, uri: Uri){
-        when(type){
-            1 -> {
-                intentInstallerVersion.intentInstallation()
-            }
-            2 -> {
-                intentInstallerVersion.intentInstallation()
-            }
-        }
-    }
-
-    private fun downloadFile(downloadUri: Uri) {
-            val request = DownloadManager.Request(downloadUri)
-                .setMimeType(MIME_TYPE)
-                .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-                .setTitle(FILE_NAME)
-                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, FILE_NAME)
-//                .setDestinationUri(destinationUri)
+    fun downloadFile(linkUrl: String) {
+        val networkAddress = Uri.parse(linkUrl)
+        val destinationUri = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
+//        val destinationUri = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
+//        val destinationUri = context.getExternalFilesDir(null)?.absolutePath.toString()
+//        val destinationUri = context.getExternalFilesDir(null)?.absolutePath.toString()
+        val uri = Uri.parse(FILE_BASE_PATH + destinationUri)
+        val file = File(destinationUri)
+        val isCreated = file.mkdir()
+        val request = DownloadManager.Request(networkAddress)
+            .setTitle(FILE_NAME)
+            .setMimeType(MIME_TYPE)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+//                .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, FILE_NAME)
+//                .setDestinationInExternalFilesDir(context, Environment.DIRECTORY_DOWNLOADS, FILE_NAME)
+            .setDestinationUri(uri)
         downloadManager.enqueue(request)
     }
+
+
+
 
 //    fun enqueueDownload() {
 ////        var destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"
@@ -143,11 +118,11 @@ class Downloader(
 //        context.registerReceiver(onComplete, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 //    }
 //
-//    fun uriFromFile(context: Context?, file: File?): Uri? {
+//    fun uriFromFile(context: Context, file: File): Uri {
 //        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
 //            FileProvider.getUriForFile(
-//                context!!, com.example.appfortester.BuildConfig.APPLICATION_ID + ".provider",
-//                file!!
+//                context, com.example.appfortester.BuildConfig.APPLICATION_ID + ".provider",
+//                file
 //            )
 //        } else {
 //            Uri.fromFile(file)

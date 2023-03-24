@@ -7,34 +7,56 @@ import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.core.content.FileProvider
+import com.example.appfortester.BuildConfig
 import com.example.appfortester.utils.Constants
+import com.example.appfortester.utils.Constants.FILE_BASE_PATH
+import com.example.appfortester.utils.Constants.FILE_NAME
 import java.io.File
 
 class IntentInstallerVersion(private val context: Context) {
 
     fun intentInstallation() {
-        Log.e("info", "intentInstallation")
-        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"+ Constants.FILE_NAME
+        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
+//        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
+
+        val uri = Uri.parse(FILE_BASE_PATH + path)
+        Log.e("info", "intentInstallation - $uri")
         val file = File(path)
         if (file.exists()) {
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.setDataAndType(uriFromFile(context, file),
-                "application/vnd.android.package-archive"
-            )
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-            intent.data = uriFromFile(context, file)
-            try {
-                Log.e("info", "intentInstallation - try to start")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                val contentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + Constants.PROVIDER_PATH, file)
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+                intent.data = contentUri
                 context.startActivity(intent)
-            } catch (e: ActivityNotFoundException) {
-                e.printStackTrace()
-                Log.e("info", "Error in opening the file!")
+            } else {
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                intent.setDataAndType(uri,
+                "application/vnd.android.package-archive")
+                context.startActivity(intent)
             }
-        } else {
-            Log.e("info", "intentInstallation - file not exists")
-            Toast.makeText(context, "Installing!!!", Toast.LENGTH_SHORT).show()
+
+//            val intent = Intent(Intent.ACTION_VIEW)
+//            intent.setDataAndType(uriFromFile(context, file),
+//                "application/vnd.android.package-archive"
+//            )
+//            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+//            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//            intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+//            intent.data = uriFromFile(context, file)
+//            try {
+//                Log.e("info", "intentInstallation - try to start")
+//                context.startActivity(intent)
+//            } catch (e: ActivityNotFoundException) {
+//                e.printStackTrace()
+//                Log.e("info", "Error in opening the file!")
+//            }
+//        } else {
+//            Log.e("info", "intentInstallation - file not exists")
+//            Toast.makeText(context, "Installing!!!", Toast.LENGTH_SHORT).show()
         }
     }
 

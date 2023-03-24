@@ -18,7 +18,8 @@
         android:usesCleartextTraffic="true"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppForTester"
-        tools:targetApi="31">
+        android:requestLegacyExternalStorage="true"
+        tools:targetApi="s">
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -28,17 +29,27 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".broadcasts.DownloadCompleteReceiver"
-            android:exported="true">
-        </receiver>
+<!--        <receiver android:name=".broadcasts.DownloadCompleteReceiver"-->
+<!--            android:exported="true">-->
+<!--        </receiver>-->
+<!--        <provider-->
+<!--            android:name="androidx.core.content.FileProvider"-->
+<!--            android:authorities="${applicationId}.provider"-->
+<!--            android:exported="false"-->
+<!--            android:grantUriPermissions="true">-->
+<!--            <meta-data-->
+<!--                android:name="android.support.FILE_PROVIDER_PATHS"-->
+<!--                android:resource="@xml/provider_paths" />-->
+<!--        </provider>-->
         <provider
-            android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.provider"
+            android:name="androidx.core.content.FileProvider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/provider_paths" />
+                android:resource="@xml/provider_paths"/>
+
         </provider>
     </application>
 </manifest>

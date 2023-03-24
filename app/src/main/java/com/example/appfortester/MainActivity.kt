@@ -1,22 +1,18 @@
 package com.example.appfortester
 
 import android.Manifest
-import android.app.DownloadManager
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import com.example.appfortester.broadcasts.DownloadCompleteReceiver
+//import com.example.appfortester.broadcasts.DownloadCompleteReceiver
 import com.example.appfortester.databinding.ActivityMainBinding
-import com.example.appfortester.installers.IntentInstallerVersion
-import com.example.appfortester.installers.PackageInstallerVersion
-import com.example.appfortester.utils.Constants.MAIN_URL
 import com.example.appfortester.utils.Extensions.checkSelfPermissionCompat
 import com.example.appfortester.utils.Extensions.requestPermissionsCompat
 import com.google.android.material.snackbar.Snackbar
@@ -29,22 +25,21 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
-    private val intentInstallerVersion =  IntentInstallerVersion(context = this)
-    private val packageInstallerVersion =  PackageInstallerVersion(context = this)
-    private val downloader = Downloader(this, MAIN_URL, intentInstallerVersion, packageInstallerVersion)
+    private val downloader = Downloader(this)
     private val reqCode = 200
-    private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
-    private val unknownSourceResult = registerForActivityResult<Intent, ActivityResult>(
+//    private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
+    private val unknownSourceResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
         if (result.resultCode == RESULT_OK) {
             startActivity(intent)
         }
     }
+    private var isDownloaded = false
 
     @ProvidePresenter
     fun provideMainPresenter(): MainPresenter{
-        return MainPresenter(downloader = downloader)
+        return MainPresenter(downloader = downloader, context = this)
     }
 
     private var _binding: ActivityMainBinding? = null
@@ -57,12 +52,17 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(binding.root)
 
         installUnknownSourcePermission()
-        downloadCompleteReceiver = DownloadCompleteReceiver()
-        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+//        downloadCompleteReceiver = DownloadCompleteReceiver()
+//        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         binding.btnInstallIntent.setOnClickListener {
+            Log.d("info", "click - $isDownloaded")
             if (checkPermissionVersionTwo()){
-                mainPresenter.getAppAndInstallViaIntent()
+                if (isDownloaded){
+                    mainPresenter.installFileViaIntent()
+                } else {
+                    mainPresenter.downloadFile()
+                }
             } else {
                 this.requestPermissionsCompat(arrayOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -73,7 +73,19 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         }
 
         binding.btnInstallPackInstaller.setOnClickListener {
-            mainPresenter.getAppAndInstallViaPackInstaller()
+            if (checkPermissionVersionTwo()){
+                if (isDownloaded){
+                    mainPresenter.installFileViaPackageInstaller()
+                } else {
+                    mainPresenter.downloadFile()
+                }
+            } else {
+                this.requestPermissionsCompat(arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.REQUEST_INSTALL_PACKAGES), reqCode)
+            }
         }
     }
 
@@ -93,10 +105,9 @@ class MainActivity : MvpAppCompatActivity(), MainView {
                 val checkRead = read == PackageManager.PERMISSION_GRANTED
                 val checkInstall = install == PackageManager.PERMISSION_GRANTED
                 if (checkWrite && checkRead && checkInstall){
-//                    Snackbar.make(binding.root, "Permission granted after recheck!", Snackbar.LENGTH_SHORT).show()
-                    mainPresenter.getAppAndInstallViaIntent()
+                    mainPresenter.downloadFile()
                 } else {
-//                    Snackbar.make(binding.root, "Permission denied... Reinstall app", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(binding.root, "Permission denied... Reinstall app", Snackbar.LENGTH_SHORT).show()
                 }
             }
         }
@@ -122,17 +133,22 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     }
 
     override fun installed() {
-        Snackbar.make(binding.root, "Installation is finished successful", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, "Installation is finished successfully", Snackbar.LENGTH_SHORT).show()
+        binding.btnInstallIntent.text = "File download and installed!"
+        binding.btnInstallIntent.isEnabled = false
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    override fun downloaded() {
-        Snackbar.make(binding.root, "Download is finished successful", Snackbar.LENGTH_SHORT).show()
+    override fun downloaded(isDownloaded: Boolean) {
+        Snackbar.make(binding.root, "Download is finished successfully", Snackbar.LENGTH_SHORT).show()
+        binding.btnInstallIntent.isEnabled = true
+        binding.btnInstallIntent.text = "Install via Intent"
+        this.isDownloaded = isDownloaded
     }
 
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-        unregisterReceiver(downloadCompleteReceiver)
+//        unregisterReceiver(downloadCompleteReceiver)
     }
 }
