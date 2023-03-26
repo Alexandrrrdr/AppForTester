@@ -1,9 +1,11 @@
 package com.example.appfortester.utils
 
 object Constants {
-    const val MAIN_URL = "https://drive.google.com/uc?export=download&id=15m6E4qWOPv8v1KUDGoOoaziL6HYSW3fa"
+    const val MAIN_URL = "https://filetransfer.io/data-package/99TeGwHP/download"
     const val REQUEST_CODE = 100
-    const val FILE_NAME = "app-experimental-play-release (5).apk"
+    const val PACKAGE = "package"
+    const val FILE_NAME = "testTextOnly.apk"
+    const val PACKAGE_NAME = "com.example.appfortester"
     const val MIME_TYPE = "application/vnd.android.package-archive"
     const val FILE_BASE_PATH = "file://"
     const val PROVIDER_PATH = ".provider"

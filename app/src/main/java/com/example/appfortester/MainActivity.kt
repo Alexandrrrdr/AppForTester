@@ -1,20 +1,26 @@
 package com.example.appfortester
 
 import android.Manifest
+import android.app.DownloadManager
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.core.content.PackageManagerCompat
+import com.example.appfortester.broadcasts.DownloadCompleteReceiver
 //import com.example.appfortester.broadcasts.DownloadCompleteReceiver
 import com.example.appfortester.databinding.ActivityMainBinding
+import com.example.appfortester.utils.Constants.PERMISSION_REQUEST_STORAGE
 import com.example.appfortester.utils.Extensions.checkSelfPermissionCompat
 import com.example.appfortester.utils.Extensions.requestPermissionsCompat
+import com.example.appfortester.utils.Extensions.shouldShowRequestPermissionRationaleCompat
+import com.example.appfortester.utils.Extensions.showSnackbar
 import com.google.android.material.snackbar.Snackbar
 import moxy.MvpAppCompatActivity
 import moxy.presenter.InjectPresenter
@@ -27,7 +33,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     lateinit var mainPresenter: MainPresenter
     private val downloader = Downloader(this)
     private val reqCode = 200
-//    private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
+    private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
     private val unknownSourceResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
@@ -52,40 +58,29 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(binding.root)
 
         installUnknownSourcePermission()
-//        downloadCompleteReceiver = DownloadCompleteReceiver()
-//        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+
+        downloadCompleteReceiver = DownloadCompleteReceiver()
+        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
 
         binding.btnInstallIntent.setOnClickListener {
-            Log.d("info", "click - $isDownloaded")
-            if (checkPermissionVersionTwo()){
-                if (isDownloaded){
-                    mainPresenter.installFileViaIntent()
-                } else {
-                    mainPresenter.downloadFile()
-                }
-            } else {
-                this.requestPermissionsCompat(arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.REQUEST_INSTALL_PACKAGES), reqCode)
-            }
+            checkStoragePermission()
         }
 
         binding.btnInstallPackInstaller.setOnClickListener {
-            if (checkPermissionVersionTwo()){
-                if (isDownloaded){
-                    mainPresenter.installFileViaPackageInstaller()
-                } else {
-                    mainPresenter.downloadFile()
-                }
-            } else {
-                this.requestPermissionsCompat(arrayOf(
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.READ_EXTERNAL_STORAGE,
-                    Manifest.permission.REQUEST_INSTALL_PACKAGES), reqCode)
+
+        }
+    }
+
+    private fun requestStoragePermission() {
+        if (shouldShowRequestPermissionRationaleCompat(Manifest.permission.WRITE_EXTERNAL_STORAGE)){
+            binding.root.showSnackbar(
+                R.string.storage_access_required,
+                Snackbar.LENGTH_INDEFINITE,
+                R.string.ok) {
+                requestPermissionsCompat(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_STORAGE)
             }
+        } else {
+            requestPermissionsCompat(arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE), PERMISSION_REQUEST_STORAGE)
         }
     }
 
@@ -94,28 +89,18 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == this.reqCode){
-            if (grantResults.isNotEmpty()){
-                val write = grantResults[0]
-                val read = grantResults[1]
-                val install = grantResults[2]
-
-                val checkWrite = write == PackageManager.PERMISSION_GRANTED
-                val checkRead = read == PackageManager.PERMISSION_GRANTED
-                val checkInstall = install == PackageManager.PERMISSION_GRANTED
-                if (checkWrite && checkRead && checkInstall){
-                    mainPresenter.downloadFile()
-                } else {
-                    Snackbar.make(binding.root, "Permission denied... Reinstall app", Snackbar.LENGTH_SHORT).show()
-                }
+        if(requestCode == PERMISSION_REQUEST_STORAGE){
+            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                mainPresenter.downloadFile()
             }
+        } else {
+            binding.root.showSnackbar(R.string.storage_permission_denied, Snackbar.LENGTH_SHORT)
         }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
     private fun installUnknownSourcePermission(){
-        //check and install permission
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !this.packageManager.canRequestPackageInstalls()){
             val intent = Intent().setAction(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES)
                 .setData(Uri.parse(String.format("package:%s", this.packageName)))
@@ -124,12 +109,13 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     }
 
     @RequiresApi(Build.VERSION_CODES.M)
-    private fun checkPermissionVersionTwo(): Boolean{
-        val writePermission = checkSelfPermissionCompat(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        val readPermission = checkSelfPermissionCompat(Manifest.permission.READ_EXTERNAL_STORAGE)
-        val installPermission = checkSelfPermissionCompat(Manifest.permission.REQUEST_INSTALL_PACKAGES)
-        return writePermission == PackageManager.PERMISSION_GRANTED && readPermission == PackageManager.PERMISSION_GRANTED
-                &&  installPermission == PackageManager.PERMISSION_GRANTED
+    private fun checkStoragePermission(){
+        if (checkSelfPermissionCompat(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            && checkSelfPermissionCompat(Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
+            mainPresenter.downloadFile()
+        } else {
+            requestStoragePermission()
+        }
     }
 
     override fun installed() {
@@ -140,7 +126,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun downloaded(isDownloaded: Boolean) {
-        Snackbar.make(binding.root, "Download is finished successfully", Snackbar.LENGTH_SHORT).show()
+        Snackbar.make(binding.root, "File downloaded, start installation", Snackbar.LENGTH_SHORT).show()
         binding.btnInstallIntent.isEnabled = true
         binding.btnInstallIntent.text = "Install via Intent"
         this.isDownloaded = isDownloaded
@@ -149,6 +135,6 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
-//        unregisterReceiver(downloadCompleteReceiver)
+        unregisterReceiver(downloadCompleteReceiver)
     }
 }

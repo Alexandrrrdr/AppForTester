@@ -16,29 +16,38 @@ import java.io.File
 class IntentInstallerVersion(private val context: Context) {
 
     fun intentInstallation() {
-        val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
+        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
 //        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString()
 
         val uri = Uri.parse(FILE_BASE_PATH + path)
         Log.e("info", "intentInstallation - $uri")
-        val file = File(path)
+        val file = File(path, FILE_NAME)
         if (file.exists()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                val contentUri = FileProvider.getUriForFile(context, BuildConfig.APPLICATION_ID + Constants.PROVIDER_PATH, file)
+                val contentUri = FileProvider.getUriForFile(
+                    context,
+                    BuildConfig.APPLICATION_ID + Constants.PROVIDER_PATH,
+                    file
+                )
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
                 intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
                 intent.data = contentUri
                 context.startActivity(intent)
             } else {
                 val intent = Intent(Intent.ACTION_VIEW)
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                intent.setDataAndType(uri,
-                "application/vnd.android.package-archive")
+                intent.setDataAndType(
+                    uri,
+                    "application/vnd.android.package-archive"
+                )
                 context.startActivity(intent)
             }
-
+        }}
+//        if (file.exists()){
+//
 //            val intent = Intent(Intent.ACTION_VIEW)
 //            intent.setDataAndType(uriFromFile(context, file),
 //                "application/vnd.android.package-archive"
@@ -57,8 +66,8 @@ class IntentInstallerVersion(private val context: Context) {
 //        } else {
 //            Log.e("info", "intentInstallation - file not exists")
 //            Toast.makeText(context, "Installing!!!", Toast.LENGTH_SHORT).show()
-        }
-    }
+//        }
+//    }
 
     private fun uriFromFile(context: Context, file: File): Uri {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {

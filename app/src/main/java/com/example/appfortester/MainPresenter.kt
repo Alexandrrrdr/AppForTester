@@ -1,12 +1,10 @@
 package com.example.appfortester
 
-import android.app.DownloadManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.net.Uri
 import android.os.Environment
+import android.util.Log
+import android.widget.Toast
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
 import com.example.appfortester.utils.Constants.FILE_NAME
@@ -32,11 +30,17 @@ class MainPresenter(
         val file = File(filePath)
         if (file.exists()) {
             fileIsDownloaded()
+            Log.d("info", " download - File exists, start installation")
+            downloader.installPackageLastVersion()
         } else {
-            context.registerReceiver(downloadBroadcastReceiver,
-                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-            )
-            downloader.downloadFile(MAIN_URL)
+            Log.d("info", "download - File don't exists")
+//            context.registerReceiver(downloadBroadcastReceiver,
+//                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+//            )
+            Toast.makeText(context, "Download is started!", Toast.LENGTH_SHORT).show()
+            CoroutineScope(Dispatchers.IO).launch {
+                downloader.downloadFile(MAIN_URL)
+            }
         }
     }
 
@@ -55,10 +59,10 @@ class MainPresenter(
         intentInstallerVersion.intentInstallation()
     }
 
-    private val downloadBroadcastReceiver = object : BroadcastReceiver(){
-        override fun onReceive(context: Context, intent: Intent) {
-            fileIsDownloaded()
-            context.unregisterReceiver(this)
-        }
-    }
+//    private val downloadBroadcastReceiver = object : BroadcastReceiver(){
+//        override fun onReceive(context: Context, intent: Intent) {
+//            fileIsDownloaded()
+//            context.unregisterReceiver(this)
+//        }
+//    }
 }

@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Environment
 import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.utils.Constants
+import com.example.appfortester.utils.Constants.FILE_NAME
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -22,12 +23,12 @@ class PackageInstallerVersion(private val context: Context) {
     }
 
     suspend fun packageInstallerDownloader(apkUri: Uri, context: Context) {
+        val installer = context.packageManager.packageInstaller
+        val resolver = context.contentResolver
         withContext(Dispatchers.IO){
-            val installer = context.packageManager.packageInstaller
-            val resolver = context.contentResolver
             resolver.openInputStream(apkUri)?.use { apkStream ->
-                val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/"+ Constants.FILE_NAME
-                val file = File(path)
+                val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(path, FILE_NAME)
                 var session: PackageInstaller.Session? = null
 
                 val params: PackageInstaller.SessionParams = PackageInstaller
