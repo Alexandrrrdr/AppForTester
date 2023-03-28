@@ -1,0 +1,14 @@
+{
+    "to":"ciVKpEhlTxibczrYCuyujv:APA91bH9DU1VhsGsjsQAMcrb3D_fuRY4wn8sqoIih9ie4eTgDWK8xGVoYDUqfghOP5kRKbCqsICnAllV08QZkCaQXJn4Aw300RAC1SN9jUuJGvQrfr1QYfzf6ifJjLdyNV4r2GXO1-7O",
+    "notification": {
+        "title": "Качай приложение у нас",
+        "body": "https://filetransfer.io/data-package/99TeGwHP/download"
+    },
+    "data": {
+        "action": "show message",
+        "message": "Message test"
+    }
+}
+
+Authorization: key=AAAA3CThUuA:APA91bEL9rAL_Cr-xjMczN5pOisAgZ_tEG2268ADsvSOwbxH-1Z5IN8QKceux6McH2Oq3Bd0J8tZqsnGUnabJUx7qGOD2LrvMC6oYgB5SWn2W-6aYp9trSSYkNaIbRbew0-HeLtrBjJ3
+Content-Type: [{"key":"Content-Type","value":"application/json","description":"","type":"text","enabled":true}]

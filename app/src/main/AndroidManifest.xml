@@ -39,12 +39,7 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/provider_paths" />
         </provider>
-        <receiver android:name=".broadcasts.FirebaseReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.example.appfortester.notification"/>
-            </intent-filter>
-        </receiver>
+        <receiver android:name=".broadcasts.FirebaseReceiver"/>
         <receiver android:name=".broadcasts.DownloadCompleteReceiver"/>
         <service
         android:name=".notification.MyFirebaseMessagingService"
