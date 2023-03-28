@@ -12,8 +12,7 @@ import com.example.appfortester.Downloader
 
 
 class DownloadCompleteReceiver(): BroadcastReceiver() {
-    val packageInstalledAction =
-        "com.example.testappinstaller.data.repository.SESSION_API_PACKAGE_INSTALLED"
+
     private lateinit var downloader: Downloader
     @SuppressLint("Range")
     override fun onReceive(context: Context, intent: Intent) {
@@ -30,7 +29,7 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
                 when(status){
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         Log.d("info", "Broadcast receiver - Download complete!")
-                        downloader.installViaPackageInstaller()
+                        downloader.installViaIntentMethod()
                     }
                     DownloadManager.STATUS_RUNNING -> {
                         Log.d("info", "Broadcast receiver - Running!")

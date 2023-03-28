@@ -31,12 +31,9 @@ class MainPresenter(
         if (file.exists()) {
             fileIsDownloaded()
             Log.d("info", " download - File exists, start installation")
-            downloader.installPackageLastVersion()
+            downloader.installViaIntentMethod()
         } else {
             Log.d("info", "download - File don't exists")
-//            context.registerReceiver(downloadBroadcastReceiver,
-//                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-//            )
             Toast.makeText(context, "Download is started!", Toast.LENGTH_SHORT).show()
             CoroutineScope(Dispatchers.IO).launch {
                 downloader.downloadFile(MAIN_URL)
@@ -47,22 +44,4 @@ class MainPresenter(
     private fun fileIsDownloaded(){
         viewState.downloaded(isDownloaded = true)
     }
-
-    fun installFileViaPackageInstaller(){
-        val filePath = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + FILE_NAME
-        CoroutineScope(Dispatchers.IO).launch{
-            packageInstallerVersion.packageInstallerDownloader(apkUri = Uri.parse(filePath), context = context)
-        }
-    }
-
-    fun installFileViaIntent(){
-        intentInstallerVersion.intentInstallation()
-    }
-
-//    private val downloadBroadcastReceiver = object : BroadcastReceiver(){
-//        override fun onReceive(context: Context, intent: Intent) {
-//            fileIsDownloaded()
-//            context.unregisterReceiver(this)
-//        }
-//    }
 }

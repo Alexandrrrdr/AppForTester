@@ -9,19 +9,21 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.core.content.PackageManagerCompat
 import com.example.appfortester.broadcasts.DownloadCompleteReceiver
-//import com.example.appfortester.broadcasts.DownloadCompleteReceiver
+import com.example.appfortester.broadcasts.FirebaseReceiver
 import com.example.appfortester.databinding.ActivityMainBinding
+import com.example.appfortester.notification.MyFirebaseMessagingService
 import com.example.appfortester.utils.Constants.PERMISSION_REQUEST_STORAGE
 import com.example.appfortester.utils.Extensions.checkSelfPermissionCompat
 import com.example.appfortester.utils.Extensions.requestPermissionsCompat
 import com.example.appfortester.utils.Extensions.shouldShowRequestPermissionRationaleCompat
 import com.example.appfortester.utils.Extensions.showSnackbar
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.messaging.FirebaseMessaging
 import moxy.MvpAppCompatActivity
 import moxy.presenter.InjectPresenter
 import moxy.presenter.ProvidePresenter
@@ -32,8 +34,9 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
     private val downloader = Downloader(this)
-    private val reqCode = 200
     private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
+    private lateinit var firebaseReceiver: FirebaseReceiver
+
     private val unknownSourceResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result: ActivityResult ->
@@ -58,9 +61,8 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(binding.root)
 
         installUnknownSourcePermission()
-
-        downloadCompleteReceiver = DownloadCompleteReceiver()
-        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        createFirebaseToken()
+        registerReceivers()
 
         binding.btnInstallIntent.setOnClickListener {
             checkStoragePermission()
@@ -68,6 +70,25 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
         binding.btnInstallPackInstaller.setOnClickListener {
 
+        }
+    }
+
+    private fun registerReceivers(){
+        downloadCompleteReceiver = DownloadCompleteReceiver()
+        firebaseReceiver = FirebaseReceiver()
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(MyFirebaseMessagingService.INTENT_FILTER)
+        registerReceiver(firebaseReceiver, intentFilter)
+        registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+    }
+
+    private fun createFirebaseToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener{ task ->
+            if (!task.isSuccessful){
+                return@addOnCompleteListener
+            }
+            val token = task.result
+            Log.d("info", "Token - $token")
         }
     }
 
@@ -133,8 +154,9 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         _binding = null
+        unregisterReceiver(firebaseReceiver)
         unregisterReceiver(downloadCompleteReceiver)
+        super.onDestroy()
     }
 }

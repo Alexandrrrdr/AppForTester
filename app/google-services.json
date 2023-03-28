@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "945511551712",
+    "project_id": "appfortester",
+    "storage_bucket": "appfortester.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:945511551712:android:77b30ebcdf873390773685",
+        "android_client_info": {
+          "package_name": "com.example.appfortester"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "945511551712-16q8gg7gff9kh0mgh3tr0asmkqp0pjt3.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAxkiNUHScYTBOve1C4E_geujv5NnEJHpc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "945511551712-16q8gg7gff9kh0mgh3tr0asmkqp0pjt3.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
