@@ -5,18 +5,28 @@ import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import com.example.appfortester.Downloader
+import com.example.appfortester.installers.IntentInstallerVersion
+import com.example.appfortester.installers.PackageInstallerVersion
+import com.example.appfortester.utils.Constants.FILE_NAME
+import java.io.File
 
 
 class DownloadCompleteReceiver(): BroadcastReceiver() {
 
-    private lateinit var downloader: Downloader
+    private lateinit var installer: IntentInstallerVersion
+    @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("Range")
     override fun onReceive(context: Context, intent: Intent) {
-        downloader = Downloader(context = context)
+        installer = IntentInstallerVersion()
+        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+        val file = File(path, FILE_NAME)
         val action: String = intent.action!!
         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == action && intent.extras != null) {
             val extras: Bundle = intent.extras!!
@@ -29,7 +39,7 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
                 when(status){
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         Log.d("info", "Broadcast receiver - Download complete!")
-                        downloader.installViaIntentMethod()
+                        installer.installViaIntentMethod(context)
                     }
                     DownloadManager.STATUS_RUNNING -> {
                         Log.d("info", "Broadcast receiver - Running!")

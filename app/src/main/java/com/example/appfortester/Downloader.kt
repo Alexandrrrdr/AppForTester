@@ -8,8 +8,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import com.example.appfortester.broadcasts.PackageInstallReceiver
+import com.example.appfortester.installers.IntentInstallerVersion
+import com.example.appfortester.installers.PackageInstallerVersion
+import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.APP_INSTALL_PATH
 import com.example.appfortester.utils.Constants.FILE_BASE_PATH
 import com.example.appfortester.utils.Constants.FILE_NAME
@@ -25,72 +29,34 @@ class Downloader(
     private val downloadManager by lazy {
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
-    private var downloadedFileId = 0L
+    private var downloadedFileId: Long? = null
+    private val intentInstaller = IntentInstallerVersion()
+    private val packageInstaller = PackageInstallerVersion()
 
-    //downloader
-    suspend fun downloadFile(linkUrl: String) {
+    suspend fun downloadFile(linkUrl: String, typeOfInstall: Int) {
+        var isDownloaded: Boolean = false
         val networkAddress = Uri.parse(linkUrl)
-        val destinationUri =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                .toString() + "/" + FILE_NAME
+        val destinationUri = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
         val uri = Uri.parse("$FILE_BASE_PATH$destinationUri")
         val request = DownloadManager.Request(networkAddress)
             .setTitle(FILE_NAME)
             .setMimeType(MIME_TYPE)
-            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             .setDestinationUri(uri)
         downloadedFileId = downloadManager.enqueue(request)
     }
 
-//    fun installation(){
-//
-//        val filePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-//        val file = File(filePath, FILE_NAME)
-//        val uriFromFile = Uri.fromFile(file)
-//        Log.d("info", "installPackage - $uriFromFile")
-//        CoroutineScope(Dispatchers.Main).launch {
-//            installPackage(apkUri = uriFromFile)
-//        }
-//    }
-//
-//    private suspend fun installPackage(apkUri: Uri){
-//        val installer = context.packageManager.packageInstaller
-//        val resolver = context.contentResolver
-//        withContext(Dispatchers.IO){
-//            resolver.openInputStream(apkUri)?.use { apkStream ->
-//
-//                val length =
-//                    DocumentFile.fromSingleUri(context, apkUri)?.length() ?: -1
-////                var length = 0L
-////                val file = File("$apkUri")
-////                //TODO if problems change to isExists
-////                Log.d("info", "installPackage - $apkUri")
-////                if (file.exists()) {
-////                    length = file.length()
-////                }
-//
-////                Log.d("info", "installPackage - $length")
-//                val params =
-//                    PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-//                val sessionId = installer.createSession(params)
-//                val session = installer.openSession(sessionId)
-//
-//                session.openWrite(PACKAGE_NAME, 0, length).use { sessionStream ->
-//                    apkStream.copyTo(sessionStream)
-//                    session.fsync(sessionStream)
-//                }
-//                val intent = Intent(context, PackageInstallReceiver::class.java)
-//                val pi = PendingIntent.getBroadcast(
-//                    context,
-//                    PACKAGE_INSTALL,
-//                    intent,
-//                    PendingIntent.FLAG_UPDATE_CURRENT
-//                )
-//                session.commit(pi.intentSender)
-//                session.close()
-//            }
-//        }
-//    }
+    fun startInstallation(installType: Int){
+        when(installType){
+            Constants.INTENT_INSTALLATION -> {
+                intentInstaller.installViaIntentMethod(context)
+            }
+            Constants.PACKAGE_INSTALLATION -> {
+                packageInstaller.packageInstallerDownloader(context)
+            }
+        }
+    }
+
 
 //    fun installPackageVersion() {
 //        val destinationUri =
@@ -174,41 +140,6 @@ class Downloader(
 //    }
 
     //intent installer work version
-    fun installViaIntentMethod() {
-        val destination =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                .toString() + "/" + FILE_NAME
-        val uri = Uri.parse("$FILE_BASE_PATH$destination")
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            val contentUri = FileProvider.getUriForFile(
-                context,
-                BuildConfig.APPLICATION_ID + PROVIDER_PATH,
-                File(destination)
-            )
-            val install = Intent(Intent.ACTION_VIEW)
-            install.setDataAndType(contentUri, MIME_TYPE)
-            install.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-            install.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-            try {
-                context.startActivity(install)
-            } catch (e: ActivityNotFoundException) {
-                e.printStackTrace();
-                Log.d("info", "Error in opening the file!");
-            }
-        } else {
-            val install = Intent(Intent.ACTION_VIEW)
-            install.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-            install.setDataAndType(
-                uri,
-                APP_INSTALL_PATH
-            )
-            context.startActivity(install)
-        }
-    }
 
 
     //1 st variant of packageInstaller
