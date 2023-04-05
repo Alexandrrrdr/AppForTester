@@ -16,6 +16,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import com.example.appfortester.broadcasts.DownloadCompleteReceiver
 import com.example.appfortester.broadcasts.FirebaseReceiver
+import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.databinding.ActivityMainBinding
 import com.example.appfortester.notification.MyFirebaseMessagingService
 import com.example.appfortester.utils.Constants.INTENT_INSTALLATION
@@ -34,6 +35,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     lateinit var mainPresenter: MainPresenter
     private val downloader = Downloader(this)
     private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
+    private lateinit var packageInstallerReceiver: PackageInstallReceiver
     private lateinit var firebaseReceiver: FirebaseReceiver
     private var permissionsGranted = false
 
@@ -119,6 +121,8 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         registerReceiver(firebaseReceiver, intentFilter)
         downloadCompleteReceiver = DownloadCompleteReceiver()
         registerReceiver(downloadCompleteReceiver, IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE))
+        packageInstallerReceiver = PackageInstallReceiver()
+
     }
 
     private fun createFirebaseToken() {
@@ -174,6 +178,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         _binding = null
         unregisterReceiver(firebaseReceiver)
         unregisterReceiver(downloadCompleteReceiver)
+        unregisterReceiver(packageInstallerReceiver)
         super.onDestroy()
     }
 }

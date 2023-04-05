@@ -29,7 +29,10 @@ class MainPresenter(
         if (file.exists()) {
             isFileDownloaded = true
             Log.d("info", " download - file exists, start installation")
-            downloader.startInstallation(typeOfInstall)
+
+            CoroutineScope(Dispatchers.Main).launch {
+                downloader.startInstallation(typeOfInstall, filePath)
+            }
             fileIsDownloaded(isFileDownloaded)
         } else {
             Log.d("info", "download - Start downloading")

@@ -15,6 +15,9 @@ import com.example.appfortester.Downloader
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
 import com.example.appfortester.utils.Constants.FILE_NAME
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -39,7 +42,9 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
                 when(status){
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         Log.d("info", "Broadcast receiver - Download complete!")
-                        installer.installViaIntentMethod(context)
+                        CoroutineScope(Dispatchers.Main).launch {
+                            installer.installViaIntentMethod(context)
+                        }
                     }
                     DownloadManager.STATUS_RUNNING -> {
                         Log.d("info", "Broadcast receiver - Running!")

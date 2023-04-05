@@ -14,7 +14,7 @@ import java.io.File
 
 class IntentInstallerVersion() {
 
-    fun installViaIntentMethod(context: Context) {
+    suspend fun installViaIntentMethod(context: Context) {
         val destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
         val uri = Uri.parse("$FILE_BASE_PATH$destination")
 

@@ -20,4 +20,5 @@ object Constants {
     const val CHANNEL_NAME = "com.example.appfortester"
     const val INTENT_INSTALLATION = 1
     const val PACKAGE_INSTALLATION = 2
+    const val PACKAGE_INSTALLED_ACTION = "com.example.appfortester.installers.SESSION_API_PACKAGE_INSTALLED"
 }

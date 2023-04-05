@@ -13,12 +13,15 @@ import androidx.core.content.FileProvider
 import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
+import com.example.appfortester.installers.PackageInstallerVersionTwo
 import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.APP_INSTALL_PATH
 import com.example.appfortester.utils.Constants.FILE_BASE_PATH
 import com.example.appfortester.utils.Constants.FILE_NAME
 import com.example.appfortester.utils.Constants.MIME_TYPE
 import com.example.appfortester.utils.Constants.PROVIDER_PATH
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 
 
@@ -32,6 +35,7 @@ class Downloader(
     private var downloadedFileId: Long? = null
     private val intentInstaller = IntentInstallerVersion()
     private val packageInstaller = PackageInstallerVersion()
+    private val packageInstall = PackageInstallerVersionTwo(context)
 
     suspend fun downloadFile(linkUrl: String, typeOfInstall: Int) {
         var isDownloaded: Boolean = false
@@ -46,13 +50,16 @@ class Downloader(
         downloadedFileId = downloadManager.enqueue(request)
     }
 
-    fun startInstallation(installType: Int){
-        when(installType){
-            Constants.INTENT_INSTALLATION -> {
-                intentInstaller.installViaIntentMethod(context)
-            }
-            Constants.PACKAGE_INSTALLATION -> {
-                packageInstaller.packageInstallerDownloader(context)
+    suspend fun startInstallation(installType: Int, path: String){
+        withContext(Dispatchers.IO){
+            when(installType){
+                Constants.INTENT_INSTALLATION -> {
+                    intentInstaller.installViaIntentMethod(context)
+                }
+                Constants.PACKAGE_INSTALLATION -> {
+//                    packageInstaller.packageInstallerDownloader(context)
+                    packageInstall.packageInstall(path)
+                }
             }
         }
     }

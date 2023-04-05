@@ -50,6 +50,7 @@
         </provider>
         <receiver android:name=".broadcasts.FirebaseReceiver"/>
         <receiver android:name=".broadcasts.DownloadCompleteReceiver"/>
+        <receiver android:name=".broadcasts.PackageInstallReceiver"/>
         <service
         android:name=".notification.MyFirebaseMessagingService"
         android:exported="true">
