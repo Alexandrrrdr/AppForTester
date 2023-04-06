@@ -17,7 +17,7 @@ import java.io.*
 class PackageInstallerVersionTwo(private val context: Context) {
 
     @SuppressLint("UnspecifiedImmutableFlag")
-    suspend fun packageInstall(path: String) {
+    suspend fun packageInstall() {
         withContext(Dispatchers.IO) {
 
             var session: android.content.pm.PackageInstaller.Session? = null

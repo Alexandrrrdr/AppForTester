@@ -5,6 +5,7 @@ import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
@@ -14,6 +15,8 @@ import androidx.annotation.RequiresApi
 import com.example.appfortester.Downloader
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
+import com.example.appfortester.installers.PackageInstallerVersionThree
+import com.example.appfortester.installers.PackageInstallerVersionTwo
 import com.example.appfortester.utils.Constants.FILE_NAME
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -23,13 +26,11 @@ import java.io.File
 
 class DownloadCompleteReceiver(): BroadcastReceiver() {
 
-    private lateinit var installer: IntentInstallerVersion
+    private lateinit var installer: PackageInstallerVersionThree
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("Range")
     override fun onReceive(context: Context, intent: Intent) {
-        installer = IntentInstallerVersion()
-        val path = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-        val file = File(path, FILE_NAME)
+        installer = PackageInstallerVersionThree(context = context)
         val action: String = intent.action!!
         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == action && intent.extras != null) {
             val extras: Bundle = intent.extras!!
@@ -43,7 +44,7 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
                     DownloadManager.STATUS_SUCCESSFUL -> {
                         Log.d("info", "Broadcast receiver - Download complete!")
                         CoroutineScope(Dispatchers.Main).launch {
-                            installer.installViaIntentMethod(context)
+                            installer.install()
                         }
                     }
                     DownloadManager.STATUS_RUNNING -> {

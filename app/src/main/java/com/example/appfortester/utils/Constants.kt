@@ -18,6 +18,7 @@ object Constants {
     const val APP_INSTALL_PATH = "\"application/vnd.android.package-archive\""
     const val CHANNEL_ID = "notification_channel"
     const val CHANNEL_NAME = "com.example.appfortester"
+    const val PI_INSTALLER = 3439
     const val INTENT_INSTALLATION = 1
     const val PACKAGE_INSTALLATION = 2
     const val PACKAGE_INSTALLED_ACTION = "com.example.appfortester.installers.SESSION_API_PACKAGE_INSTALLED"

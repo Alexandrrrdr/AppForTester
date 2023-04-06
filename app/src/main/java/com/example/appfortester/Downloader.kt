@@ -13,6 +13,7 @@ import androidx.core.content.FileProvider
 import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
+import com.example.appfortester.installers.PackageInstallerVersionThree
 import com.example.appfortester.installers.PackageInstallerVersionTwo
 import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.APP_INSTALL_PATH
@@ -36,6 +37,7 @@ class Downloader(
     private val intentInstaller = IntentInstallerVersion()
     private val packageInstaller = PackageInstallerVersion()
     private val packageInstall = PackageInstallerVersionTwo(context)
+    private val packageInstallThree = PackageInstallerVersionThree(context)
 
     suspend fun downloadFile(linkUrl: String, typeOfInstall: Int) {
         var isDownloaded: Boolean = false
@@ -57,8 +59,7 @@ class Downloader(
                     intentInstaller.installViaIntentMethod(context)
                 }
                 Constants.PACKAGE_INSTALLATION -> {
-//                    packageInstaller.packageInstallerDownloader(context)
-                    packageInstall.packageInstall(path)
+                    packageInstallThree.install()
                 }
             }
         }
