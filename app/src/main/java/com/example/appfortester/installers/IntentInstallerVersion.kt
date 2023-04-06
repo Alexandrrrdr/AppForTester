@@ -18,13 +18,47 @@ class IntentInstallerVersion() {
         val destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
         val uri = Uri.parse("$FILE_BASE_PATH$destination")
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val contentUri = FileProvider.getUriForFile(
                 context,
                 BuildConfig.APPLICATION_ID + Constants.PROVIDER_PATH,
                 File(destination)
             )
             val install = Intent(Intent.ACTION_VIEW)
+            install.setDataAndType(contentUri, Constants.MIME_TYPE)
+            install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            install.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
+            try {
+                context.startActivity(install)
+            } catch (e: ActivityNotFoundException) {
+                e.printStackTrace();
+                Log.d("info", "Error in opening the file!");
+            }
+        } else {
+            val install = Intent(Intent.ACTION_VIEW)
+            install.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+            install.setDataAndType(
+                uri,
+                Constants.APP_INSTALL_PATH
+            )
+            context.startActivity(install)
+        }
+    }
+
+    suspend fun uninstallViaIntentMethod(context: Context) {
+        val destination = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
+        val uri = Uri.parse("$FILE_BASE_PATH$destination")
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val contentUri = FileProvider.getUriForFile(
+                context,
+                BuildConfig.APPLICATION_ID + Constants.PROVIDER_PATH,
+                File(destination)
+            )
+            val install = Intent(Intent.ACTION_DELETE)
             install.setDataAndType(contentUri, Constants.MIME_TYPE)
             install.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or
                     Intent.FLAG_ACTIVITY_NEW_TASK or

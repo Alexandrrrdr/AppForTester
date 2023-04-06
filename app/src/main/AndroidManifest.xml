@@ -14,8 +14,6 @@
         android:maxSdkVersion="28"/>
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
-<!--    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"-->
-<!--        tools:ignore="ScopedStorage" />-->
 
 
 
@@ -51,12 +49,14 @@
                 android:resource="@xml/provider_paths" />
         </provider>
         <receiver android:name=".broadcasts.FirebaseReceiver"/>
-        <receiver android:name=".broadcasts.DownloadCompleteReceiver"/>
-        <receiver android:name=".broadcasts.PackageInstallReceiver"
+        <receiver android:name=".broadcasts.DownloadCompleteReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.example.appfortester.installers.SESSION_API_PACKAGE_INSTALLED"/>
+                <action android:name="com.example.appfortester.EXTRA_FOR_BROADCAST"/>
             </intent-filter>
+        </receiver>
+        <receiver android:name=".broadcasts.PackageInstallReceiver"
+            android:exported="true">
         </receiver>
         <service
         android:name=".notification.MyFirebaseMessagingService"

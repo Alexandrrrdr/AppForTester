@@ -5,32 +5,23 @@ import android.app.DownloadManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresApi
-import com.example.appfortester.Downloader
-import com.example.appfortester.installers.IntentInstallerVersion
 import com.example.appfortester.installers.PackageInstallerVersion
-import com.example.appfortester.installers.PackageInstallerVersionThree
-import com.example.appfortester.installers.PackageInstallerVersionTwo
-import com.example.appfortester.utils.Constants.FILE_NAME
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
 
 
 class DownloadCompleteReceiver(): BroadcastReceiver() {
 
-    private lateinit var installer: PackageInstallerVersionThree
+    private lateinit var installer: PackageInstallerVersion
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("Range")
     override fun onReceive(context: Context, intent: Intent) {
-        installer = PackageInstallerVersionThree(context = context)
+        installer = PackageInstallerVersion(context = context)
         val action: String = intent.action!!
         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == action && intent.extras != null) {
             val extras: Bundle = intent.extras!!
