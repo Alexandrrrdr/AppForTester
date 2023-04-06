@@ -21,6 +21,7 @@ import com.example.appfortester.databinding.ActivityMainBinding
 import com.example.appfortester.notification.MyFirebaseMessagingService
 import com.example.appfortester.utils.Constants.INTENT_INSTALLATION
 import com.example.appfortester.utils.Constants.PACKAGE_INSTALLATION
+import com.example.appfortester.utils.Constants.PACKAGE_INSTALLED_ACTION
 import com.example.appfortester.utils.Constants.PERMISSION_REQUEST_STORAGE
 import com.example.appfortester.utils.Extensions.showSnackbar
 import com.google.android.material.snackbar.Snackbar
@@ -104,7 +105,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
                 Manifest.permission.REQUEST_INSTALL_PACKAGES,
-//                Manifest.permission.REQUEST_DELETE_PACKAGES
+                Manifest.permission.REQUEST_DELETE_PACKAGES
             ))
         } else {
             requestMultiplePermissions.launch(arrayOf(
@@ -112,6 +113,44 @@ class MainActivity : MvpAppCompatActivity(), MainView {
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             ))
         }
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        val extras = intent?.extras
+        Log.d("info", "onNewIntent")
+        if (PACKAGE_INSTALLED_ACTION == intent?.action) {
+            val status = extras!!.getInt(android.content.pm.PackageInstaller.EXTRA_STATUS)
+            val message = extras.getString(android.content.pm.PackageInstaller.EXTRA_STATUS_MESSAGE)
+            when (status) {
+                android.content.pm.PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                    // This test app isn't privileged, so the user has to confirm the install.
+//                    val confirmIntent = extras[Intent.EXTRA_INTENT] as Intent?
+                    val confirmIntent = intent.getStringExtra(Intent.EXTRA_INTENT) as Intent
+                    this.startActivity(confirmIntent)
+                }
+                android.content.pm.PackageInstaller.STATUS_SUCCESS -> Toast.makeText(
+                    this,
+                    "Install succeeded!",
+                    Toast.LENGTH_SHORT
+                ).show()
+                android.content.pm.PackageInstaller.STATUS_FAILURE,
+                android.content.pm.PackageInstaller.STATUS_FAILURE_ABORTED,
+                android.content.pm.PackageInstaller.STATUS_FAILURE_BLOCKED,
+                android.content.pm.PackageInstaller.STATUS_FAILURE_CONFLICT,
+                android.content.pm.PackageInstaller.STATUS_FAILURE_INCOMPATIBLE,
+                android.content.pm.PackageInstaller.STATUS_FAILURE_INVALID,
+                android.content.pm.PackageInstaller.STATUS_FAILURE_STORAGE -> Toast.makeText(
+                    this,
+                    "Install failed! $status, $message",
+                    Toast.LENGTH_SHORT
+                ).show()
+                else -> Toast.makeText(
+                    this, "Unrecognized status received from installer: $status",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        super.onNewIntent(intent)
     }
 
     private fun registerReceivers(){

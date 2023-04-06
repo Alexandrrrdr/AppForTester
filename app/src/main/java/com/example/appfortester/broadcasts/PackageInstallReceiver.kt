@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.util.Log
 import android.widget.Toast
+import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.PACKAGE_INSTALLED_ACTION
 
 class PackageInstallReceiver(): BroadcastReceiver() {
@@ -31,6 +32,7 @@ class PackageInstallReceiver(): BroadcastReceiver() {
 //    }
     override fun onReceive(context: Context?, intent: Intent?) {
         val extras = intent?.extras
+        val msg = intent?.getStringExtra(PACKAGE_INSTALLED_ACTION)
         if (PACKAGE_INSTALLED_ACTION == intent?.action) {
             val status = extras!!.getInt(android.content.pm.PackageInstaller.EXTRA_STATUS)
             val message = extras.getString(android.content.pm.PackageInstaller.EXTRA_STATUS_MESSAGE)

@@ -7,19 +7,11 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Environment
 import android.util.Log
-import android.widget.Toast
-import com.example.appfortester.broadcasts.PackageInstallReceiver
-import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.FILE_NAME
 import com.example.appfortester.utils.Constants.PACKAGE_INSTALLED_ACTION
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.DataInputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 
 
 class PackageInstallerVersionTwo(private val context: Context) {
@@ -50,9 +42,7 @@ class PackageInstallerVersionTwo(private val context: Context) {
                 }
                 var inputStr: InputStream? = null
                 var outputStr: OutputStream? = null
-                var dataInputStr: DataInputStream? = null
 
-//                inputStr = FileInputStream(file)
                 inputStr = context.contentResolver.openInputStream(Uri.fromFile(file))!!
 
                 outputStr = session.openWrite("my_app_session", 0, fileLength)
@@ -76,24 +66,41 @@ class PackageInstallerVersionTwo(private val context: Context) {
                 )
 
                 //TODO Unable to start receiver
-                val intent = Intent(context, PackageInstallReceiver::class.java)
+
+                //version 2
+
+                // Create an install status receiver.
+
+                val intent = Intent(context, PackageInstallerVersionTwo::class.java)
                 intent.action = PACKAGE_INSTALLED_ACTION
-                val pendingIntent =
-                    PendingIntent.getBroadcast(
-                        context,
-                        sessionId,
-                        intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                    )
+                val pendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
                 val statusReceiver = pendingIntent.intentSender
+
+                // Commit the session (this will start the installation workflow).
+
                 // Commit the session (this will start the installation workflow).
                 session.commit(statusReceiver)
-                session.close()
+
+                //version 1
+//                val intent = Intent()
+//                intent.action = PACKAGE_INSTALLED_ACTION
+//                intent.putExtra(PACKAGE_INSTALLED_ACTION, "Message from PackageInstaller")
+//                val pendingIntent =
+//                    PendingIntent.getBroadcast(
+//                        context,
+//                        sessionId,
+//                        intent,
+//                        PendingIntent.FLAG_UPDATE_CURRENT
+//                    )
+//                context.sendBroadcast(intent)
+//                val statusReceiver = pendingIntent.intentSender
+////                 Commit the session (this will start the installation workflow).
+//                session.commit(statusReceiver)
+//                session.commit(PendingIntent.getBroadcast(context, sessionId, intent, PendingIntent.FLAG_UPDATE_CURRENT).intentSender)
+//                session.close()
             } catch (e: IOException) {
                 Log.d("info", "IOException - ${e.message}")
-                Log.d("info", "Path - ${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                            .toString() + "/" + FILE_NAME}"
-                )
+                Log.d("info", "Path - ${context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME}")
                 throw RuntimeException("Couldn't install package", e)
             } catch (e: RuntimeException) {
                 session?.abandon()
