@@ -23,13 +23,9 @@ class Downloader(
         context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
     }
     private var downloadedFileId: Long? = null
-    private val intentInstaller = IntentInstallerVersion()
-    private val packageInstallThree = PackageInstallerVersion(context)
 
-    suspend fun downloadFile(linkUrl: String, typeOfInstall: Int) {
-        val intent = Intent(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        intent.putExtra("installation", typeOfInstall)
-        context.sendBroadcast(intent)
+    suspend fun downloadFile(linkUrl: String) {
+
         val networkAddress = Uri.parse(linkUrl)
         val destinationUri = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
         val uri = Uri.parse("$FILE_BASE_PATH$destinationUri")
@@ -39,19 +35,9 @@ class Downloader(
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
             .setDestinationUri(uri)
         downloadedFileId = downloadManager.enqueue(request)
-    }
-
-    suspend fun startInstallation(installType: Int){
-        withContext(Dispatchers.IO){
-            when(installType){
-                Constants.INTENT_INSTALLATION -> {
-                    intentInstaller.installViaIntentMethod(context)
-                }
-                Constants.PACKAGE_INSTALLATION -> {
-                    packageInstallThree.install()
-                }
-            }
-        }
+        val intent = Intent(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+        intent.putExtra(DATA_SENDING, downloadedFileId)
+        context.sendBroadcast(intent)
     }
 }
 

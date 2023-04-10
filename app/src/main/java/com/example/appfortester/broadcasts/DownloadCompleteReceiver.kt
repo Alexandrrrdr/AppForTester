@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.appfortester.installers.PackageInstallerVersion
+import com.example.appfortester.utils.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,7 +34,8 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
                 val status: Int = c.getInt(c.getColumnIndex(DownloadManager.COLUMN_STATUS))
                 when(status){
                     DownloadManager.STATUS_SUCCESSFUL -> {
-                        Log.d("info", "Broadcast receiver - Download complete!")
+                        val downloadRequestId = intent.getLongExtra(Constants.DATA_SENDING, 0L)
+                        Log.d("info", "Broadcast receiver - Download complete! Id is $downloadRequestId")
                         CoroutineScope(Dispatchers.Main).launch {
                             installer.install()
                         }

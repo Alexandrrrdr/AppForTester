@@ -1,8 +1,11 @@
 package com.example.appfortester
 
+import android.Manifest
 import android.content.Context
+import android.os.Build
 import android.os.Environment
 import android.util.Log
+import com.example.appfortester.installers.PackageInstallerVersion
 import com.example.appfortester.utils.Constants.FILE_NAME
 import com.example.appfortester.utils.Constants.MAIN_URL
 import kotlinx.coroutines.CoroutineScope
@@ -16,27 +19,23 @@ import java.io.File
 @InjectViewState
 class MainPresenter(
     private val downloader: Downloader,
-    private val context: Context
+    private val context: Context,
+    private val packageInstallerVersion: PackageInstallerVersion
 ) : MvpPresenter<MainView>() {
 
-    fun downloadFile(typeOfInstall: Int) {
+    fun downloadFile() {
         val filePath = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS).toString() + "/" + FILE_NAME
         val file = File(filePath)
         if (file.exists()) {
             Log.d("info", " download - file exists, start installation")
-
             CoroutineScope(Dispatchers.Main).launch {
-                downloader.startInstallation(typeOfInstall)
+                packageInstallerVersion.install()
             }
         } else {
             Log.d("info", "download - Start downloading")
             CoroutineScope(Dispatchers.IO).launch {
-                downloader.downloadFile(MAIN_URL, typeOfInstall)
+                downloader.downloadFile(MAIN_URL)
             }
         }
-    }
-
-    private fun fileIsDownloaded(downloaded: Boolean){
-        viewState.downloaded(isDownloaded = downloaded)
     }
 }
