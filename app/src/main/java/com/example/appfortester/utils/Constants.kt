@@ -10,10 +10,7 @@ object Constants {
     const val PERMISSION_REQUEST_STORAGE = 0
     const val APP_INSTALL_PATH = "\"application/vnd.android.package-archive\""
     const val PI_INSTALLER = 3439
-    const val INTENT_INSTALLATION = 1
-    const val PACKAGE_INSTALLATION = 2
-    const val DATA_SENDING = "com.example.appfortester.EXTRA_FOR_BROADCAST"
-    const val PACKAGE_INSTALLED_ACTION = "com.example.appfortester.installers.SESSION_API_PACKAGE_INSTALLED"
-    const val INSTALL_APP = 1
-    const val UNINSTALL_APP = 2
+    const val TIRAMISU_PERMISSIONS = 1
+    const val R_PERMISSIONS = 2
+    const val R_LESS_PERMISSIONS = 3
 }

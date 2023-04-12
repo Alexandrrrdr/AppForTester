@@ -25,8 +25,13 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
         val action: String = intent.action!!
         if (DownloadManager.ACTION_DOWNLOAD_COMPLETE == action && intent.extras != null) {
             val extras: Bundle = intent.extras!!
+
+            val idFromDownloadManager = intent.getLongExtra("id", 0L)
+            Log.d("info", "idFromDownloadManager - $idFromDownloadManager")
+
             val q = DownloadManager.Query()
             val downloadId: Long = extras.getLong(DownloadManager.EXTRA_DOWNLOAD_ID)
+            Log.d("info", "downloadId - $downloadId")
             q.setFilterById(downloadId)
             val c = (context.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).query(q)
             if (c.moveToFirst()) {

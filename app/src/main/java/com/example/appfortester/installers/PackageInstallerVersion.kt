@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
 import android.util.Log
 import com.example.appfortester.broadcasts.PackageInstallReceiver
@@ -27,8 +28,8 @@ class PackageInstallerVersion(private val context: Context) {
             val resolver: ContentResolver = context.applicationContext.contentResolver
             val installer: PackageInstaller =
                 context.applicationContext.packageManager.packageInstaller
-            val fileLocation = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                .toString() + "/" + Constants.FILE_NAME
+            val fileLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" +
+                    Constants.FILE_NAME
             var fileLength = 0L
             val file = File(fileLocation)
             if (file.isFile) {
@@ -61,14 +62,25 @@ class PackageInstallerVersion(private val context: Context) {
                 }
 
                 val intent = Intent(context.applicationContext, PackageInstallReceiver::class.java)
-                val pendingIntent = PendingIntent.getBroadcast(
-                    context.applicationContext,
-                    Constants.PI_INSTALLER,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT
-                )
-                session!!.commit(pendingIntent.intentSender)
-                session!!.close()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        context.applicationContext,
+                        Constants.PI_INSTALLER,
+                        intent,
+                        PendingIntent.FLAG_MUTABLE
+                    )
+                    session!!.commit(pendingIntent.intentSender)
+                    session!!.close()
+                } else {
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        context.applicationContext,
+                        Constants.PI_INSTALLER,
+                        intent,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                    )
+                    session!!.commit(pendingIntent.intentSender)
+                    session!!.close()
+                }
             }
         }
     }
