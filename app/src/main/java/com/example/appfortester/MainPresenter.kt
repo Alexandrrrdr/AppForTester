@@ -26,12 +26,12 @@ class MainPresenter(
         val file = File(filePath)
         if (file.exists()) {
             Log.d("info", " download - file exists, start installation")
-            CoroutineScope(Dispatchers.IO).launch {
-                packageInstaller.install()
+            CoroutineScope(Dispatchers.Main).launch {
+                packageInstaller.startInstallApp()
             }
         } else {
             Log.d("info", "download - Start downloading")
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.Main).launch {
                 downloader.downloadFile(MAIN_URL)
             }
         }

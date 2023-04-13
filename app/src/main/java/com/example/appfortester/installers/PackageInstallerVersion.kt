@@ -18,12 +18,8 @@ import java.io.File
 
 class PackageInstallerVersion(private val context: Context) {
 
-    suspend fun install() {
-        coroutineInstaller()
-    }
-
     @SuppressLint("UnspecifiedImmutableFlag")
-    private suspend fun coroutineInstaller() {
+    suspend fun startInstallApp() {
         withContext(Dispatchers.IO) {
             val resolver: ContentResolver = context.applicationContext.contentResolver
             val installer: PackageInstaller =
@@ -62,6 +58,8 @@ class PackageInstallerVersion(private val context: Context) {
                 }
 
                 val intent = Intent(context.applicationContext, PackageInstallReceiver::class.java)
+                //From Android S FLAG_MUTABLE or FLAG_IMMUTABLE must be used
+                //but immutable doesn't start the installation.
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
                     val pendingIntent = PendingIntent.getBroadcast(
                         context.applicationContext,

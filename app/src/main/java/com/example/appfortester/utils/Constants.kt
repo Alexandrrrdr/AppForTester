@@ -13,4 +13,5 @@ object Constants {
     const val TIRAMISU_PERMISSIONS = 1
     const val R_PERMISSIONS = 2
     const val R_LESS_PERMISSIONS = 3
+    const val DATA_SENDING = "com.example.appfortester.BROADCASTRECEIVER"
 }
