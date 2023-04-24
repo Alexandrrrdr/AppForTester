@@ -38,13 +38,13 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
-    private val downloader = Downloader(this)
+    private val downloader = LibreDownloader(this)
     private val packageInstaller = PackageInstallerVersion(this)
     private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
     private lateinit var packageInstallerReceiver: PackageInstallReceiver
     private lateinit var pLauncher: ActivityResultLauncher<String>
 //    private lateinit var firebaseReceiver: FirebaseReceiver
-    private var permissionsGranted = false
+
 
     private val unknownSourceResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -64,6 +64,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
 
         registerPermissionListener()
         checkNecessaryPermissions()
@@ -142,8 +143,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     private fun checkAndRequestPermission(permissions: Array<String>){
         for (i in permissions.indices){
             when{
-                ContextCompat.checkSelfPermission(this, permissions[i])
-                        == PackageManager.PERMISSION_GRANTED -> {
+                ContextCompat.checkSelfPermission(this, permissions[i]) == PackageManager.PERMISSION_GRANTED -> {
                     Log.d("info", "checkAndRequestPermission - ${permissions[i]} - Granted")
                 }
                 shouldShowRequestPermissionRationale(permissions[i]) -> {
