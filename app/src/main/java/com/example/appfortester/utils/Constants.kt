@@ -1,7 +1,7 @@
 package com.example.appfortester.utils
 
 object Constants {
-    const val MAIN_URL = "https://filetransfer.io/data-package/JduwMGJU#link"
+    const val MAIN_URL = "https://filetransfer.io/data-package/JduwMGJU/download"
     const val PACKAGE = "package"
     const val FILE_NAME = "testTextOnly.apk"
     const val MIME_TYPE = "application/vnd.android.package-archive"
