@@ -40,6 +40,7 @@ dependencies {
 
     implementation 'com.ixuea:android-downloader:3.0.0'
     implementation 'com.vmadalin:easypermissions-ktx:1.0.0'
+    implementation 'com.github.Justson:Downloader:v5.0.4-androidx'
 
     implementation platform('com.google.firebase:firebase-bom:31.3.0')
     implementation 'com.google.firebase:firebase-config-ktx'

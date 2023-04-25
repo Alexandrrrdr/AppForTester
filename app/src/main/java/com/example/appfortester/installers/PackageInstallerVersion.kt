@@ -8,10 +8,10 @@ import android.content.Intent
 import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.util.Log
 import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.utils.Constants
+import com.example.appfortester.utils.Constants.FILE_NAME
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -28,20 +28,18 @@ class PackageInstallerVersion(private val context: Context) {
                 val resolver: ContentResolver = context.applicationContext.contentResolver
                 val installer: PackageInstaller =
                     context.applicationContext.packageManager.packageInstaller
-                val fileLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                        .toString() + "/" +
-                            Constants.FILE_NAME
+                val fileLocation = File(context.cacheDir, FILE_NAME)
                 var fileLength = 0L
-                val file = File(fileLocation)
-                if (file.isFile) {
-                    fileLength = file.length()
+//                val file = File(fileLocation)
+                if (fileLocation.isFile) {
+                    fileLength = fileLocation.length()
                 } else {
                     Log.d("info", "File is not existing... How it's working?!")
                 }
                 var sessionId = 0
                 var session: PackageInstaller.Session? = null
 
-                resolver.openInputStream(Uri.fromFile(file)).use { apkStream ->
+                resolver.openInputStream(Uri.fromFile(fileLocation)).use { apkStream ->
                     val params =
                         PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
                     try {
