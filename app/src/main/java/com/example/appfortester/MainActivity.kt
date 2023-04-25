@@ -38,13 +38,14 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
-    private val downloader = LibreDownloader(this)
+    private val downloader = Downloader(this)
     private val packageInstaller = PackageInstallerVersion(this)
+    private val libreDownloader =  LibreDownloader(this)
     private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
     private lateinit var packageInstallerReceiver: PackageInstallReceiver
     private lateinit var pLauncher: ActivityResultLauncher<String>
 //    private lateinit var firebaseReceiver: FirebaseReceiver
-
+    private var permissionsGranted = false
 
     private val unknownSourceResult = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
@@ -54,7 +55,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     }
     @ProvidePresenter
     fun provideMainPresenter(): MainPresenter{
-        return MainPresenter(downloader = downloader, context = this, packageInstaller = packageInstaller)
+        return MainPresenter(downloader = downloader, context = this, libreDownloader = libreDownloader, packageInstaller = packageInstaller)
     }
 
     private var _binding: ActivityMainBinding? = null
@@ -66,13 +67,13 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(binding.root)
 
 
-        registerPermissionListener()
-        checkNecessaryPermissions()
         installUnknownSourcePermission()
 //        createFirebaseToken()
         registerReceivers()
+        registerPermissionListener()
 
         binding.btnInstallPackInstaller.setOnClickListener {
+            checkNecessaryPermissions()
             mainPresenter.downloadFile()
         }
     }
@@ -140,10 +141,12 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         }
     }
 
+    //TODO it doesn't work
     private fun checkAndRequestPermission(permissions: Array<String>){
         for (i in permissions.indices){
             when{
-                ContextCompat.checkSelfPermission(this, permissions[i]) == PackageManager.PERMISSION_GRANTED -> {
+                ContextCompat.checkSelfPermission(this, permissions[i])
+                        == PackageManager.PERMISSION_GRANTED -> {
                     Log.d("info", "checkAndRequestPermission - ${permissions[i]} - Granted")
                 }
                 shouldShowRequestPermissionRationale(permissions[i]) -> {
@@ -210,52 +213,6 @@ private fun askUserForOpeningsSettings(){
             .show()
     }
 }
-
-//    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-//    private fun tiramisuPermissionChecker(): Boolean {
-//        return (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
-//                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED
-//                && ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED)
-//    }
-
-//    private fun checkPermissions(){
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
-//            requestMultiplePermissions.launch(arrayOf(
-//                Manifest.permission.READ_MEDIA_AUDIO,
-//                Manifest.permission.READ_MEDIA_VIDEO,
-//                Manifest.permission.READ_MEDIA_IMAGES
-//            ))
-//        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//            requestMultiplePermissions.launch(arrayOf(
-//                Manifest.permission.READ_EXTERNAL_STORAGE,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE,
-//                Manifest.permission.REQUEST_INSTALL_PACKAGES,
-//                Manifest.permission.REQUEST_DELETE_PACKAGES
-//            ))
-//        } else {
-//            requestMultiplePermissions.launch(arrayOf(
-//                Manifest.permission.READ_EXTERNAL_STORAGE,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE
-//            ))
-//        }
-//    }
-
-//    @RequiresApi(Build.VERSION_CODES.M)
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        if(requestCode == PERMISSION_REQUEST_STORAGE){
-//            if (grantResults.size == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-//                Toast.makeText(this, "Permissions granted, try download again", Toast.LENGTH_SHORT).show()
-//            }
-//        } else {
-//            binding.root.showSnackbar(R.string.storage_permission_denied, Snackbar.LENGTH_SHORT)
-//        }
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//    }
-
     override fun installing() {
     }
 

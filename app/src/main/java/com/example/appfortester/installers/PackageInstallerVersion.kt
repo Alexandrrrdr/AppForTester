@@ -18,68 +18,74 @@ import java.io.File
 
 class PackageInstallerVersion(private val context: Context) {
 
+    suspend fun install() {
+        coroutineInstaller()
+    }
+
     @SuppressLint("UnspecifiedImmutableFlag")
-    suspend fun startInstallApp() {
-        withContext(Dispatchers.IO) {
-            val resolver: ContentResolver = context.applicationContext.contentResolver
-            val installer: PackageInstaller =
-                context.applicationContext.packageManager.packageInstaller
-            val fileLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).toString() + "/" +
-                    Constants.FILE_NAME
-            var fileLength = 0L
-            val file = File(fileLocation)
-            if (file.isFile) {
-                fileLength = file.length()
-            } else {
-                Log.d("info", "File is not existing... How it's working?!")
-            }
-            var sessionId = 0
-            var session: PackageInstaller.Session? = null
-
-            resolver.openInputStream(Uri.fromFile(file)).use { apkStream ->
-                val params =
-                    PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
-                try {
-                    sessionId = installer.createSession(params)
-                } catch (e: Exception) {
-                    Log.d("info", "Couldn't create session")
-                }
-
-                try {
-                    session = installer.openSession(sessionId)
-                } catch (e: Exception) {
-                    Log.d("info", "Couldn't open session")
-                    return@withContext
-                }
-
-                session!!.openWrite(Constants.PACKAGE, 0, fileLength).use { outputStream ->
-                    apkStream?.copyTo(outputStream)
-                    session!!.fsync(outputStream)
-                }
-
-                val intent = Intent(context.applicationContext, PackageInstallReceiver::class.java)
-                //From Android S FLAG_MUTABLE or FLAG_IMMUTABLE must be used
-                //but immutable doesn't start the installation.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S){
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        context.applicationContext,
-                        Constants.PI_INSTALLER,
-                        intent,
-                        PendingIntent.FLAG_MUTABLE
-                    )
-                    session!!.commit(pendingIntent.intentSender)
-                    session!!.close()
+    private suspend fun coroutineInstaller() {
+            withContext(Dispatchers.IO) {
+                val resolver: ContentResolver = context.applicationContext.contentResolver
+                val installer: PackageInstaller =
+                    context.applicationContext.packageManager.packageInstaller
+                val fileLocation = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                        .toString() + "/" +
+                            Constants.FILE_NAME
+                var fileLength = 0L
+                val file = File(fileLocation)
+                if (file.isFile) {
+                    fileLength = file.length()
                 } else {
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        context.applicationContext,
-                        Constants.PI_INSTALLER,
-                        intent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                    )
-                    session!!.commit(pendingIntent.intentSender)
-                    session!!.close()
+                    Log.d("info", "File is not existing... How it's working?!")
+                }
+                var sessionId = 0
+                var session: PackageInstaller.Session? = null
+
+                resolver.openInputStream(Uri.fromFile(file)).use { apkStream ->
+                    val params =
+                        PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL)
+                    try {
+                        sessionId = installer.createSession(params)
+                    } catch (e: Exception) {
+                        Log.d("info", "Couldn't create session")
+                    }
+
+                    try {
+                        session = installer.openSession(sessionId)
+                    } catch (e: Exception) {
+                        Log.d("info", "Couldn't open session")
+                        return@withContext
+                    }
+
+                    session!!.openWrite(Constants.PACKAGE, 0, fileLength).use { outputStream ->
+                        apkStream?.copyTo(outputStream)
+                        session!!.fsync(outputStream)
+                    }
+
+                    val intent =
+                        Intent(context.applicationContext, PackageInstallReceiver::class.java)
+                    //From Android S FLAG_MUTABLE or FLAG_IMMUTABLE must be used
+                    //but immutable doesn't start the installation.
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        val pendingIntent = PendingIntent.getBroadcast(
+                            context.applicationContext,
+                            Constants.PI_INSTALLER,
+                            intent,
+                            PendingIntent.FLAG_MUTABLE
+                        )
+                        session!!.commit(pendingIntent.intentSender)
+                        session!!.close()
+                    } else {
+                        val pendingIntent = PendingIntent.getBroadcast(
+                            context.applicationContext,
+                            Constants.PI_INSTALLER,
+                            intent,
+                            PendingIntent.FLAG_UPDATE_CURRENT
+                        )
+                        session!!.commit(pendingIntent.intentSender)
+                        session!!.close()
+                    }
                 }
             }
         }
     }
-}

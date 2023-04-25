@@ -42,7 +42,7 @@ class DownloadCompleteReceiver(): BroadcastReceiver() {
                         val downloadRequestId = intent.getLongExtra(Constants.DATA_SENDING, 0L)
                         Log.d("info", "Broadcast receiver - Download complete! Id is $downloadRequestId")
                         CoroutineScope(Dispatchers.Main).launch {
-                            installer.startInstallApp()
+                            installer.install()
                         }
                     }
                     DownloadManager.STATUS_RUNNING -> {

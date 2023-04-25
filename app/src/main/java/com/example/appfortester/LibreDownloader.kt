@@ -2,36 +2,56 @@ package com.example.appfortester
 
 import android.content.Context
 import android.util.Log
-import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.FILE_NAME
+import com.example.appfortester.utils.Constants.MAIN_URL
 import com.ixuea.android.downloader.DownloadService
+import com.ixuea.android.downloader.callback.DownloadListener
 import com.ixuea.android.downloader.domain.DownloadInfo
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.ixuea.android.downloader.exception.DownloadException
 import java.io.File
+
 
 class LibreDownloader(private val context: Context) {
 
-    suspend fun startDownload(){
-        val downloadManager = DownloadService.getDownloadManager(context.applicationContext)
+    private val downloadManager by lazy {
+        DownloadService.getDownloadManager(context.applicationContext)
+    }
 
-        val cachePath = File(context.applicationContext.cacheDir.absolutePath, FILE_NAME)
-
-        val downloadInfo = DownloadInfo.Builder()
-            .setUrl(Constants.MAIN_URL)
-            .setPath(cachePath.absolutePath)
+    fun startDownload(){
+        val filePath = File(context.cacheDir, FILE_NAME)
+        val downloadInfo = DownloadInfo.Builder().setUrl(MAIN_URL)
+            .setPath(filePath.absolutePath)
             .build()
 
-        withContext(Dispatchers.IO){
-            downloadManager.download(downloadInfo)
-            Log.d("info", "${context.applicationContext.cacheDir}")
-            Log.d("info", context.applicationContext.cacheDir.absolutePath)
-            Log.d("info", "${downloadManager.getDownloadById(downloadInfo.id)}")
+        downloadInfo.downloadListener = object : DownloadListener {
+            override fun onStart() {
+                Log.d("info", "onStart start")
+            }
 
-//            val downloadedFileId = downloadManager.getDownloadById(downloadInfo.id)
-//            val intent = Intent(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-//            intent.putExtra("id", downloadedFileId)
-//            context.sendBroadcast(intent)
+            override fun onWaited() {
+                Log.d("info", "onWaited waited")
+            }
+
+            override fun onPaused() {
+                Log.d("info", "onPaused pause")
+            }
+
+            override fun onDownloading(progress: Long, size: Long) {
+                Log.d("info", "onDownloading $size")
+            }
+
+            override fun onRemoved() {
+                Log.d("info", "onRemoved removed")
+            }
+
+            override fun onDownloadSuccess() {
+                Log.d("info", "onDownloadSuccess success")
+            }
+
+            override fun onDownloadFailed(e: DownloadException?) {
+                Log.d("info", "onDownloadFailed ${e!!.cause}")
+            }
         }
+        downloadManager.download(downloadInfo)
     }
 }
