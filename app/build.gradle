@@ -29,11 +29,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    subprojects {
-        tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile) {
-            kotlinOptions.jvmTarget = "11"
-        }
-    }
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
@@ -41,6 +37,9 @@ android {
 }
 
 dependencies {
+
+    implementation 'com.ixuea:android-downloader:3.0.0'
+    implementation 'com.vmadalin:easypermissions-ktx:1.0.0'
 
     implementation platform('com.google.firebase:firebase-bom:31.3.0')
     implementation 'com.google.firebase:firebase-config-ktx'

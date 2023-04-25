@@ -18,6 +18,7 @@ import java.io.File
 class MainPresenter(
     private val downloader: Downloader,
     private val context: Context,
+    private val libreDownloader: LibreDownloader,
     private val packageInstaller: PackageInstallerVersion
 ) : MvpPresenter<MainView>() {
 
@@ -26,13 +27,15 @@ class MainPresenter(
         val file = File(filePath)
         if (file.exists()) {
             Log.d("info", " download - file exists, start installation")
-            CoroutineScope(Dispatchers.Main).launch {
-                packageInstaller.startInstallApp()
-            }
+//            CoroutineScope(Dispatchers.Main).launch {
+//                packageInstaller.install()
+//
+//            }
         } else {
             Log.d("info", "download - Start downloading")
             CoroutineScope(Dispatchers.Main).launch {
-                downloader.downloadFile(MAIN_URL)
+//                downloader.downloadFile(MAIN_URL)
+                libreDownloader.startDownload()
             }
         }
     }
