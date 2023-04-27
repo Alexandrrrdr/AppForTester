@@ -58,9 +58,9 @@
                 <action android:name="com.example.appfortester.EXTRA_FOR_BROADCAST"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".broadcasts.PackageInstallReceiver"
-            android:exported="true">
-        </receiver>
+<!--        <receiver android:name=".broadcasts.PackageInstallReceiver"-->
+<!--            android:exported="true">-->
+<!--        </receiver>-->
         <service
         android:name=".notification.MyFirebaseMessagingService"
         android:exported="true">

@@ -55,7 +55,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(binding.root)
 
 
-//        installUnknownSourcePermission()
+        installUnknownSourcePermission()
 //        createFirebaseToken()
         registerReceivers()
 
@@ -69,8 +69,9 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 //        val intentFilter = IntentFilter()
 //        intentFilter.addAction(MyFirebaseMessagingService.INTENT_FILTER)
 //        registerReceiver(firebaseReceiver, intentFilter)
-        packageInstallerReceiver = PackageInstallReceiver()
-        registerReceiver(packageInstallerReceiver, IntentFilter(PackageInstaller.EXTRA_STATUS))
+
+//        packageInstallerReceiver = PackageInstallReceiver()
+//        registerReceiver(packageInstallerReceiver, IntentFilter(PackageInstaller.EXTRA_STATUS))
         downloadCompleteReceiver = DownloadCompleteReceiver()
         registerReceiver(
             downloadCompleteReceiver,
@@ -106,7 +107,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         _binding = null
 //        unregisterReceiver(firebaseReceiver)
         unregisterReceiver(downloadCompleteReceiver)
-        unregisterReceiver(packageInstallerReceiver)
+//        unregisterReceiver(packageInstallerReceiver)
         super.onDestroy()
     }
 }

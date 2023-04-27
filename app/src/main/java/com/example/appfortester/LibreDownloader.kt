@@ -6,6 +6,7 @@ import android.util.Log
 import com.download.library.DownloadImpl
 import com.download.library.DownloadListenerAdapter
 import com.download.library.Extra
+import com.example.appfortester.utils.Constants.DOWNLOAD_LINK
 import com.example.appfortester.utils.Constants.FILE_NAME
 import com.example.appfortester.utils.Constants.MAIN_URL
 import com.ixuea.android.downloader.DownloadService
@@ -26,7 +27,7 @@ class LibreDownloader(private val context: Context) {
     suspend fun secondLibreDownloading(){
         withContext(Dispatchers.IO){
             DownloadImpl.getInstance(context.applicationContext)
-                .url(MAIN_URL)
+                .url(DOWNLOAD_LINK)
                 .setUniquePath(false)
                 .setForceDownload(true)
                 .target(File(context.cacheDir, FILE_NAME))
@@ -53,7 +54,7 @@ class LibreDownloader(private val context: Context) {
 
     fun startDownload(){
         val filePath = File(context.cacheDir, FILE_NAME)
-        val downloadInfo = DownloadInfo.Builder().setUrl(MAIN_URL)
+        val downloadInfo = DownloadInfo.Builder().setUrl(DOWNLOAD_LINK)
             .setPath(filePath.absolutePath)
             .build()
 

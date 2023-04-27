@@ -2,16 +2,21 @@ package com.example.appfortester.installers
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.utils.Constants
 import com.example.appfortester.utils.Constants.FILE_NAME
+import com.example.appfortester.utils.Constants.REQUEST_CODE
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -60,29 +65,47 @@ class PackageInstallerVersion(private val context: Context) {
                         session!!.fsync(outputStream)
                     }
 
-                    val intent =
-                        Intent(context.applicationContext, PackageInstallReceiver::class.java)
+                    val myBroadcastReceiver = object : BroadcastReceiver(){
+                        override fun onReceive(context: Context, intent: Intent) {
+                            when(val status = intent.getIntExtra(PackageInstaller.EXTRA_STATUS, -1)){
+                                PackageInstaller.STATUS_PENDING_USER_ACTION -> {
+                                    val activityIntent = intent.getParcelableExtra<Intent>(Intent.EXTRA_INTENT)
+                                    if (activityIntent != null) {
+                                        context.startActivity(activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                    }
+                                }
+                                PackageInstaller.STATUS_SUCCESS -> {
+                                    Toast.makeText(context, "Success", Toast.LENGTH_SHORT).show()
+                                }
+                                else -> {
+                                    val msg = intent.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)
+                                    Log.d("info", "$status,$msg")
+                                }
+                            }
+                        }
+                    }
+
+                    val intent = Intent(context.applicationContext, PackageInstallReceiver::class.java)
                     //From Android S FLAG_MUTABLE or FLAG_IMMUTABLE must be used
                     //but immutable doesn't start the installation.
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        val pendingIntent = PendingIntent.getBroadcast(
+                    val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        PendingIntent.getBroadcast(
                             context.applicationContext,
-                            Constants.PI_INSTALLER,
+                            REQUEST_CODE,
                             intent,
                             PendingIntent.FLAG_MUTABLE
                         )
-                        session!!.commit(pendingIntent.intentSender)
-                        session!!.close()
                     } else {
-                        val pendingIntent = PendingIntent.getBroadcast(
+                        PendingIntent.getBroadcast(
                             context.applicationContext,
-                            Constants.PI_INSTALLER,
+                            REQUEST_CODE,
                             intent,
                             PendingIntent.FLAG_UPDATE_CURRENT
                         )
-                        session!!.commit(pendingIntent.intentSender)
-                        session!!.close()
                     }
+
+                    session!!.commit(pendingIntent.intentSender)
+                    session!!.close()
                 }
             }
         }
