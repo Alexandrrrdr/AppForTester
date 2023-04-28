@@ -30,15 +30,15 @@
         android:id="@+id/secondLink"/>
 
     <TextView
+        android:id="@+id/thirdLink"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:textSize="26sp"
-        android:textColor="#14A5E8"
-        android:textStyle="bold|italic"
-        tools:text="Third link"
         android:paddingBottom="20dp"
-        android:id="@+id/thirdLink"/>
+        android:textColor="#14A5E8"
+        android:textSize="26sp"
+        android:textStyle="bold|italic"
+        tools:text="Third link" />
 
     <Button
         android:layout_width="wrap_content"
@@ -55,5 +55,13 @@
         android:text="@string/installation_via_package_installer"
         android:textColor="@color/white"
         android:textStyle="bold" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/btnUninstallApp"
+        android:text="Uninstall application"
+        android:textColor="@color/white"
+        android:textStyle="bold"/>
 
 </androidx.appcompat.widget.LinearLayoutCompat>

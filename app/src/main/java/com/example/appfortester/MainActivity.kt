@@ -1,18 +1,14 @@
 package com.example.appfortester
 
-import android.app.DownloadManager
 import android.content.Intent
-import android.content.IntentFilter
-import android.content.pm.PackageInstaller
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import com.example.appfortester.broadcasts.DownloadCompleteReceiver
-import com.example.appfortester.broadcasts.PackageInstallReceiver
 import com.example.appfortester.databinding.ActivityMainBinding
+import com.example.appfortester.installers.PackageInstallerUninstall
 import com.example.appfortester.installers.PackageInstallerVersion
 import moxy.MvpAppCompatActivity
 import moxy.presenter.InjectPresenter
@@ -24,9 +20,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     lateinit var mainPresenter: MainPresenter
     private val packageInstaller = PackageInstallerVersion(this)
     private val libreDownloader = LibreDownloader(this)
-    private lateinit var downloadCompleteReceiver: DownloadCompleteReceiver
-    private lateinit var packageInstallerReceiver: PackageInstallReceiver
-
+    private val packageInstallerUninstall = PackageInstallerUninstall(this)
     //    private lateinit var firebaseReceiver: FirebaseReceiver
 
     private val unknownSourceResult = registerForActivityResult(
@@ -42,7 +36,7 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         return MainPresenter(
             context = this,
             libreDownloader = libreDownloader,
-            packageInstaller = packageInstaller
+            packageInstallerUninstall = packageInstallerUninstall
         )
     }
 
@@ -59,6 +53,10 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 //        createFirebaseToken()
         registerReceivers()
 
+        binding.btnUninstallApp.setOnClickListener {
+            mainPresenter.uninstallApplication()
+        }
+
         binding.btnInstallPackInstaller.setOnClickListener {
             mainPresenter.downloadFile()
         }
@@ -69,14 +67,6 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 //        val intentFilter = IntentFilter()
 //        intentFilter.addAction(MyFirebaseMessagingService.INTENT_FILTER)
 //        registerReceiver(firebaseReceiver, intentFilter)
-
-//        packageInstallerReceiver = PackageInstallReceiver()
-//        registerReceiver(packageInstallerReceiver, IntentFilter(PackageInstaller.EXTRA_STATUS))
-        downloadCompleteReceiver = DownloadCompleteReceiver()
-        registerReceiver(
-            downloadCompleteReceiver,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
-        )
     }
 
 //    private fun createFirebaseToken() {
@@ -106,8 +96,6 @@ class MainActivity : MvpAppCompatActivity(), MainView {
     override fun onDestroy() {
         _binding = null
 //        unregisterReceiver(firebaseReceiver)
-        unregisterReceiver(downloadCompleteReceiver)
-//        unregisterReceiver(packageInstallerReceiver)
         super.onDestroy()
     }
 }

@@ -2,6 +2,7 @@ package com.example.appfortester
 
 import android.content.Context
 import android.util.Log
+import com.example.appfortester.installers.PackageInstallerUninstall
 import com.example.appfortester.installers.PackageInstallerVersion
 import com.example.appfortester.utils.Constants.FILE_NAME
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +17,7 @@ import java.io.File
 class MainPresenter(
     private val context: Context,
     private val libreDownloader: LibreDownloader,
-    private val packageInstaller: PackageInstallerVersion
+    private val packageInstallerUninstall: PackageInstallerUninstall
 ) : MvpPresenter<MainView>() {
 
     fun downloadFile() {
@@ -24,7 +25,7 @@ class MainPresenter(
         if (file.exists()) {
             Log.d("info", " download - file exists, start installation")
             CoroutineScope(Dispatchers.Main).launch {
-                packageInstaller.install()
+                libreDownloader.startInstallation()
 
             }
         } else {
@@ -33,6 +34,11 @@ class MainPresenter(
 //                downloader.downloadFile(MAIN_URL)
                 libreDownloader.secondLibreDownloading()
             }
+        }
+    }
+    fun uninstallApplication(){
+        CoroutineScope(Dispatchers.Main).launch {
+            packageInstallerUninstall.uninstallApplication()
         }
     }
 }
