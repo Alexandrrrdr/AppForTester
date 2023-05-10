@@ -10,6 +10,7 @@ object Constants {
     const val MIME_TYPE = "application/vnd.android.package-archive"
     const val FILE_BASE_PATH = "file://"
     const val PROVIDER_PATH = ".provider"
+    const val TAG = "tag"
     const val APP_INSTALL_PATH = "\"application/vnd.android.package-archive\""
     const val REQUEST_CODE = 101
     const val DATA_SENDING = "com.example.appfortester.BROADCASTRECEIVER"

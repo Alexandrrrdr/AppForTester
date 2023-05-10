@@ -18,7 +18,6 @@ class MainActivity : MvpAppCompatActivity(), MainView {
 
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
-    private val packageInstaller = PackageInstallerVersion(this)
     private val libreDownloader = LibreDownloader(this)
     private val packageInstallerUninstall = PackageInstallerUninstall(this)
     //    private lateinit var firebaseReceiver: FirebaseReceiver

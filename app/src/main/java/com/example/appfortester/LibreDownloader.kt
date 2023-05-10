@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageInstaller
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.util.Log
@@ -17,44 +16,21 @@ import com.download.library.DownloadImpl
 import com.download.library.DownloadListenerAdapter
 import com.download.library.Extra
 import com.example.appfortester.utils.Constants
-import com.example.appfortester.utils.Constants.DOWNLOAD_COMPLETE
 import com.example.appfortester.utils.Constants.DOWNLOAD_LINK
 import com.example.appfortester.utils.Constants.FILE_NAME
-import com.example.appfortester.utils.Constants.INTENT_EXTRA_NAME
-import com.example.appfortester.utils.Constants.TEST_PACKAGE_NAME
+import com.example.appfortester.utils.Constants.TAG
 import com.ixuea.android.downloader.DownloadService
-import com.ixuea.android.downloader.callback.DownloadListener
-import com.ixuea.android.downloader.domain.DownloadInfo
-import com.ixuea.android.downloader.exception.DownloadException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import okio.IOException
 import java.io.File
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 
 class LibreDownloader(private val context: Context) {
 
-    private val downloadManager by lazy {
-        DownloadService.getDownloadManager(context.applicationContext)
-    }
+    suspend fun secondLibreDownloading(): Boolean{
 
-    private val myDownloadBroadcastReceiver = object : BroadcastReceiver(){
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == DOWNLOAD_COMPLETE){
-                CoroutineScope(Dispatchers.Main).launch {
-                    startInstallation()
-                }
-            }
-        }
-    }
-
-    suspend fun secondLibreDownloading(){
-        IntentFilter(DOWNLOAD_COMPLETE).also {
-            context.registerReceiver(myDownloadBroadcastReceiver, it)
-        }
-
-        withContext(Dispatchers.IO){
+        return suspendCoroutine{ continuation->
             DownloadImpl.getInstance(context.applicationContext)
                 .url(DOWNLOAD_LINK)
                 .setUniquePath(false)
@@ -63,20 +39,15 @@ class LibreDownloader(private val context: Context) {
                 .enqueue(object : DownloadListenerAdapter(){
                     override fun onStart(url: String?, userAgent: String?, contentDisposition: String?, mimetype: String?, contentLength: Long, extra: Extra?) {
                         super.onStart(url, userAgent, contentDisposition, mimetype, contentLength, extra)
-                        Log.d("info", "onStart")
                     }
 
                     override fun onProgress(url: String?, downloaded: Long, length: Long, usedTime: Long) {
                         super.onProgress(url, downloaded, length, usedTime)
-                        Log.d("info", "onProgress, downloaded - $downloaded, length - $length, used time - $usedTime")
                     }
 
                     override fun onResult(throwable: Throwable?, path: Uri?, url: String?, extra: Extra?
                     ): Boolean {
-                        Log.d("info", "onResult ${extra?.userAgent}")
-                        val intent = Intent(DOWNLOAD_COMPLETE)
-                        intent.putExtra(INTENT_EXTRA_NAME, FILE_NAME)
-                        context.sendBroadcast(intent)
+                        continuation.resume(value = true)
                         return super.onResult(throwable, path, url, extra)
                     }
                 })
@@ -85,9 +56,6 @@ class LibreDownloader(private val context: Context) {
 
     @SuppressLint("UnspecifiedImmutableFlag")
     suspend fun startInstallation() {
-        if (!isPackageInstalled(TEST_PACKAGE_NAME)){
-
-        withContext(Dispatchers.IO) {
             val resolver: ContentResolver = context.applicationContext.contentResolver
             val installer: PackageInstaller = context.applicationContext.packageManager.packageInstaller
             val fileLocation = File(context.cacheDir, FILE_NAME)
@@ -114,7 +82,7 @@ class LibreDownloader(private val context: Context) {
                     session = installer.openSession(sessionId)
                 } catch (e: Exception) {
                     Log.d("info", "Couldn't open session")
-                    return@withContext
+                    return
                 }
 
                 session!!.openWrite(Constants.PACKAGE, 0, fileLength).use { outputStream ->
@@ -162,64 +130,51 @@ class LibreDownloader(private val context: Context) {
                         PendingIntent.FLAG_UPDATE_CURRENT
                     )
                 }
-                session!!.commit(pendingIntent.intentSender)
-                session!!.close()
-            }
+                try {
+                    session!!.commit(pendingIntent.intentSender)
+                    session!!.close()
+                } catch (e: IOException){
+                    Log.d(TAG, e.message.toString())
+                }
         }
-        } else {
-            Toast.makeText(context, "Application already exists", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    private fun isPackageInstalled(packageName: String): Boolean {
-        val packageManager = context.packageManager
-        return try {
-            packageManager.getPackageInfo(packageName, 0)
-            Log.d("info", "$packageName is exists")
-            true
-        } catch (e: PackageManager.NameNotFoundException) {
-            Log.d("info", "$packageName doesn't exist")
-            false
-        }
-    }
-
-    fun startDownload(){
-        val filePath = File(context.cacheDir, FILE_NAME)
-        val downloadInfo = DownloadInfo.Builder().setUrl(DOWNLOAD_LINK)
-            .setPath(filePath.absolutePath)
-            .build()
-
-
-        downloadInfo.downloadListener = object : DownloadListener {
-            override fun onStart() {
-                Log.d("info", "onStart start")
-            }
-
-            override fun onWaited() {
-                Log.d("info", "onWaited waited")
-            }
-
-            override fun onPaused() {
-                Log.d("info", "onPaused pause")
-            }
-
-            override fun onDownloading(progress: Long, size: Long) {
-                Log.d("info", "onDownloading $progress")
-            }
-
-            override fun onRemoved() {
-                Log.d("info", "onRemoved removed")
-            }
-
-            override fun onDownloadSuccess() {
-                Log.d("info", "onDownloadSuccess success")
-
-            }
-
-            override fun onDownloadFailed(e: DownloadException?) {
-                Log.d("info", "onDownloadFailed ${e!!.cause}")
-            }
-        }
-        downloadManager.download(downloadInfo)
     }
 }
+//    fun startDownload(){
+//        val filePath = File(context.cacheDir, FILE_NAME)
+//        val downloadInfo = DownloadInfo.Builder().setUrl(DOWNLOAD_LINK)
+//            .setPath(filePath.absolutePath)
+//            .build()
+//
+//
+//        downloadInfo.downloadListener = object : DownloadListener {
+//            override fun onStart() {
+//                Log.d("info", "onStart start")
+//            }
+//
+//            override fun onWaited() {
+//                Log.d("info", "onWaited waited")
+//            }
+//
+//            override fun onPaused() {
+//                Log.d("info", "onPaused pause")
+//            }
+//
+//            override fun onDownloading(progress: Long, size: Long) {
+//                Log.d("info", "onDownloading $progress")
+//            }
+//
+//            override fun onRemoved() {
+//                Log.d("info", "onRemoved removed")
+//            }
+//
+//            override fun onDownloadSuccess() {
+//                Log.d("info", "onDownloadSuccess success")
+//
+//            }
+//
+//            override fun onDownloadFailed(e: DownloadException?) {
+//                Log.d("info", "onDownloadFailed ${e!!.cause}")
+//            }
+//        }
+//        downloadManager.download(downloadInfo)
+//    }
